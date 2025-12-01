@@ -1,0 +1,11 @@
+{
+  "patientId": "1",
+  "testNonce": "123456",
+  "actual_result": "1",
+  "age": "25",
+  "hr": "0",
+  "genderHash": "0",
+  "addressHash": "0",
+  "bpHash": "0",
+  "symptomsHash": "9498700195938189324786494694073612922528563736816751571251952146595124580371"
+}

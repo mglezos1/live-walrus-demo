@@ -1,0 +1,11 @@
+[package]
+name = "zk_record_c"
+version = "1.0.0"
+edition = "legacy"
+
+[addresses]
+zk_record_c = "0x0"
+
+[dependencies]
+Sui = { local = "/root/.cargo/git/checkouts/sui-e0a047c8ed89192d/833c3bb/crates/sui-framework/packages/sui-framework" }
+MoveStdlib = { local = "/root/.cargo/git/checkouts/sui-e0a047c8ed89192d/833c3bb/crates/sui-framework/packages/move-stdlib" }

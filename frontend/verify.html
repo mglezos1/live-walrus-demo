@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify ZK Proof</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { width: 300px; margin: 5px 0; padding: 5px; }
+    button { padding: 10px; width: 200px; }
+    pre { background: #eee; padding: 10px; }
+  </style>
+</head>
+<body>
+
+<h2>Retrieve Patient Result</h2>
+
+<label>Blob ID:</label><br>
+<input id="blobId"><br>
+
+<label>Access Key (doctor123 or research123):</label><br>
+<input id="accessKey"><br><br>
+
+<button onclick="retrieve()">Retrieve + Apply Access Key</button>
+
+<h3>Server Response:</h3>
+<pre id="responseBox"></pre>
+
+<p><a href="index.html">Back to Upload Page</a></p>
+
+<script>
+async function retrieve() {
+  const data = {
+    blobId: document.getElementById("blobId").value,
+    accessKey: document.getElementById("accessKey").value
+  };
+
+  const res = await fetch("/retrieve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  const json = await res.json();
+  document.getElementById("responseBox").innerText = JSON.stringify(json, null, 2);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "patientNameHash": "1",
+  "patientIdHash": "2",
+  "genderHash": "3",
+  "addressHash": "4",
+  "symptomsHash": "5",
+  "bp_systolic": "120",
+  "bp_diastolic": "80",
+  "age": "25",
+  "hr": "100",
+  "actual_result": "1",
+  "testNonce": "777"
+}

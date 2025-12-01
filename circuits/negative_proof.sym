@@ -1,0 +1,10 @@
+1,1,1,main.hash_output
+2,2,1,main.patientId
+3,3,1,main.testNonce
+4,-1,1,main.actual_result
+5,-1,1,main.check
+6,-1,0,main.H.out
+7,-1,0,main.H.inputs[0]
+8,-1,0,main.H.inputs[1]
+9,-1,0,main.H.inputs[2]
+10,4,0,main.H.sum

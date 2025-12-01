@@ -1,0 +1,51 @@
+{
+  "doctor": {
+    "name": {
+      "iv": "c5c018116cc95b47efc5d16e",
+      "tag": "1ca0b6f0203b5ce12d714dbb4a60f1f6",
+      "ciphertext": "a153da107acbcf7ff380"
+    },
+    "age": {
+      "iv": "e85459f9f9ef9eadb24bb102",
+      "tag": "23c5844efe9ca31a60f0b60b71fe822a",
+      "ciphertext": "b75c"
+    },
+    "gender": {
+      "iv": "3d64db4acb19c082be07905b",
+      "tag": "d4d69333519966493fc394bed8663c99",
+      "ciphertext": "33effcbd"
+    },
+    "address": {
+      "iv": "31563d4595db218a75c60011",
+      "tag": "b0e9730c893582d2348572d432f86a35",
+      "ciphertext": "20828b35b8df94eb9cae53e70cd7b7ebcdc46f1a"
+    },
+    "bp": {
+      "iv": "f6c4da90574de09a0833fcc0",
+      "tag": "a74226298eab34f4608607e0ae72fe91",
+      "ciphertext": "1e227fa4d06c"
+    },
+    "hr": {
+      "iv": "e58b34b0c026204022863707",
+      "tag": "32b4f173d753df115b562ea1485298f8",
+      "ciphertext": "addb"
+    },
+    "symptoms": {
+      "iv": "7ca5aa95ae96aa95e6d14ab0",
+      "tag": "b7d6413c93da651327fc950287d82b90",
+      "ciphertext": "c695c9a0b2122cf17c448e24"
+    },
+    "covid": {
+      "iv": "779bed0e9873b149a044f065",
+      "tag": "6e400d09f42c673f20e2f359ac472c04",
+      "ciphertext": "3c"
+    }
+  },
+  "researcher": {
+    "covid": {
+      "iv": "2fa814a07de426d9e357c310",
+      "tag": "61d59ab15ce6ed2b8c3cb1f7fbdff049",
+      "ciphertext": "be"
+    }
+  }
+}

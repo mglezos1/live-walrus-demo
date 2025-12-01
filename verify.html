@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verify Medical Record</title>
+</head>
+<body>
+<h2>Verify Stored Medical Record</h2>
+
+<label>Blob ID:</label>
+<input id="blobId" size="80"/><br><br>
+
+<label>Access Key:</label>
+<input id="accessKey"/><br><br>
+
+<button onclick="verify()">Verify</button>
+
+<pre id="output"></pre>
+
+<script>
+async function verify() {
+    const blobId = document.getElementById("blobId").value;
+    const accessKey = document.getElementById("accessKey").value;
+
+    const res = await fetch("http://localhost:3000/verify-record", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blobId, accessKey })
+    });
+
+    const data = await res.json();
+    document.getElementById("output").textContent = JSON.stringify(data, null, 2);
+}
+</script>
+</body>
+</html>

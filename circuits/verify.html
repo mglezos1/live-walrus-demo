@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify Selective ZKP</title>
+</head>
+<body>
+  <h1>Verify Proof</h1>
+
+  <input id="blobId" placeholder="Enter Walrus bundle blobId"><br>
+  <input id="accessKey" placeholder="Doctor or Researcher"><br><br>
+  <button onclick="verify()">Verify</button>
+
+  <pre id="result"></pre>
+
+<script>
+async function verify() {
+  const blobId = document.getElementById("blobId").value;
+  const accessKey = document.getElementById("accessKey").value;
+
+  const res = await fetch("/verify-selective", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ blobId, accessKey })
+  });
+
+  document.getElementById("result").textContent =
+    JSON.stringify(await res.json(), null, 2);
+}
+</script>
+</body>
+</html>

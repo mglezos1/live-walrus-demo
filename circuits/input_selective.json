@@ -1,0 +1,9 @@
+{
+  "patientNameHash": 8,
+  "patientIdHash": 1,
+  "genderHash": 4,
+  "addressHash": 15,
+  "symptomsHash": 12,
+  "age": 35,
+  "actual_result": 1
+}

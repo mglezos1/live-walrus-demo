@@ -1,0 +1,16 @@
+{
+  "file": "test.txt",
+  "walrus": {
+    "blobId": "zU8ae4glm4WEMx59j0JyqLuQ9NYcmBAv88zFcmdKq-g"
+  },
+  "hashing": {
+    "poseidonEncryptedDecimal": "10748967857467671762593242111015269962654379304853571819821447056057094984705"
+  },
+  "encryption": {
+    "algorithm": "aes-256-gcm",
+    "keyHex": "10186eefc98c632fea416e902ca0c7e53e606b30c8a315503b125ce17d1b52db",
+    "ivHex": "0f9bb2c7339e61c1306ddb70",
+    "authTagHex": "87c98cc9fca9993603fd05aba50d88a5"
+  },
+  "createdAt": "2025-11-19T06:05:55.978Z"
+}

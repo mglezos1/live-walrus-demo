@@ -1,0 +1,10 @@
+{
+  "name": "John Smith",
+  "age": 42,
+  "gender": "Male",
+  "address": "123 King St, Toronto",
+  "covidResult": 1,
+  "bloodPressure": "140/90",
+  "heartRate": 83,
+  "symptoms": "fever, cough"
+}

@@ -1,0 +1,40 @@
+pragma circom 2.1.4;
+
+include "poseidon2.circom";
+
+template SelectiveDisclosure() {
+
+    signal input patientNameHash;
+    signal input patientIdHash;
+    signal input genderHash;
+    signal input addressHash;
+    signal input symptomsHash;
+
+    // Removed bp_systolic, bp_diastolic, hr, testNonce
+
+    signal input age;
+    signal input actual_result;
+
+    signal output doctorHash;
+    signal output researcherHash;
+
+    // Doctor hash (7 fields now)
+    component ph_doctor = Poseidon2(7);
+    ph_doctor.in[0] <== patientNameHash;
+    ph_doctor.in[1] <== patientIdHash;
+    ph_doctor.in[2] <== genderHash;
+    ph_doctor.in[3] <== addressHash;
+    ph_doctor.in[4] <== symptomsHash;
+    ph_doctor.in[5] <== age;
+    ph_doctor.in[6] <== actual_result;
+
+    doctorHash <== ph_doctor.out;
+
+    // Researcher hash (1 field)
+    component ph_research = Poseidon2(1);
+    ph_research.in[0] <== actual_result;
+
+    researcherHash <== ph_research.out;
+}
+
+component main = SelectiveDisclosure();

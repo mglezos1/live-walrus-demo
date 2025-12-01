@@ -1,0 +1,47 @@
+{
+  "file": "test.txt",
+  "walrus": {
+    "blobId": "nqQ4ecEOb4fIE6Hlw8MvQxFwhjAG4fgjvMy3-QVLscY",
+    "raw": [
+      {
+        "blobStoreResult": {
+          "newlyCreated": {
+            "blobObject": {
+              "id": "0xca178c143765af45032f568e5350a3a859fd7ed14883034c882230eb8a754b2d",
+              "registeredEpoch": 230,
+              "blobId": "nqQ4ecEOb4fIE6Hlw8MvQxFwhjAG4fgjvMy3-QVLscY",
+              "size": 19,
+              "encodingType": "RS2",
+              "certifiedEpoch": null,
+              "storage": {
+                "id": "0x9fbc60868d84120492744b00bad0ff3f2c67e21fcc88b64e859da4b2b3c65dda",
+                "startEpoch": 230,
+                "endEpoch": 235,
+                "storageSize": 66034000
+              },
+              "deletable": true
+            },
+            "resourceOperation": {
+              "registerFromScratch": {
+                "encodedLength": 66034000,
+                "epochsAhead": 5
+              }
+            },
+            "cost": 48825000
+          }
+        },
+        "path": "/home/mglez/walrus-mvp/tmp/encrypted_1763606856079_test.txt.bin"
+      }
+    ]
+  },
+  "hashing": {
+    "poseidonEncryptedDecimal": "5953142609768953122301335770486497461363592583235671121305794518119411917865"
+  },
+  "encryption": {
+    "algorithm": "aes-256-gcm",
+    "keyHex": "ce3016f60681a7480126b56e132ee989a76ae2b185c80d15f7a019e71da0550e",
+    "ivHex": "1b3216774c4cd55227cb3068",
+    "authTagHex": "957ef3a950fc954b1571ddd1c06502fa"
+  },
+  "createdAt": "2025-11-20T02:48:06.676Z"
+}

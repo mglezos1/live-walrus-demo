@@ -1,0 +1,10 @@
+{
+  "blobId": "nXAD6ygtX8t-ywHF73clDHkxXRW9Ck8Dlsdpq7CeO_8",
+  "poseidonHash": "8608414401389661955175518594926466726550781888368870932269822406911947515201",
+  "encryption": {
+    "keyHex": "e2dd967e3aadf1381f5d00e119af19afbf8006ded173cc14e322708059243340",
+    "ivHex": "80315b87125fec106311ef7d",
+    "authTagHex": "7dfc04ac8590693ca9fbd59d6a775e21"
+  },
+  "timestamp": 1763620948621
+}

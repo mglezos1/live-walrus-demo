@@ -1,0 +1,37 @@
+cat << 'EOF' > circuits/covid_result.circom
+pragma circom 2.1.4;
+
+include "../node_modules/circomlib/circuits/poseidon.circom";
+
+// Private inputs (hidden):
+//  - patientId: fake numeric ID
+//  - testNonce: random number to prevent guessing
+//  - result: 0 = negative, 1 = positive
+//
+// Public input:
+//  - commitment: Poseidon(patientId, testNonce, result)
+//  - claimedResult: what you're proving (0 or 1)
+
+template CovidResultProof() {
+    signal input patientId;
+    signal input testNonce;
+    signal input result;
+
+    signal input commitment;
+    signal input claimedResult;
+
+    // Poseidon with 3 inputs
+    component h = Poseidon(3);
+    h.inputs[0] <== patientId;
+    h.inputs[1] <== testNonce;
+    h.inputs[2] <== result;
+
+    // commitment must match recomputed hash
+    commitment === h.out;
+
+    // result must equal claimedResult
+    claimedResult === result;
+}
+
+component main = CovidResultProof();
+EOF

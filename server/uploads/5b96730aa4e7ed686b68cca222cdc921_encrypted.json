@@ -1,0 +1,51 @@
+{
+  "doctor": {
+    "name": {
+      "iv": "642f8c491e0ca929410841af",
+      "tag": "cdd55924c1eb1af248ae7468b26331d7",
+      "ciphertext": "ffd6bea1b6ae46c3e279"
+    },
+    "age": {
+      "iv": "11c644088ca5dd5f36bf7163",
+      "tag": "7d9ae80349eb3b7ad31c7bb4caaae7af",
+      "ciphertext": "6d13"
+    },
+    "gender": {
+      "iv": "fffda5957f097b7849658d74",
+      "tag": "a6ec0a91be238e5bba24e1a9024e6b95",
+      "ciphertext": "c6acfae3"
+    },
+    "address": {
+      "iv": "b476723af973ecc56ff831e1",
+      "tag": "ecea4a3c53fb38454d4b75a7d9fd669d",
+      "ciphertext": "4dba276d5bd1fcd4359b457fa2c31c16a135c551"
+    },
+    "bloodPressure": {
+      "iv": "60ada78e82905fd29c8d7846",
+      "tag": "5f80c598dec8828ff8daee28680f35dd",
+      "ciphertext": "ad0572f9650c"
+    },
+    "heartRate": {
+      "iv": "068b8d8b18559ea17abcd2c2",
+      "tag": "4004daa1bfcf6a5a28a37c75706688f9",
+      "ciphertext": "22c5"
+    },
+    "symptoms": {
+      "iv": "f3e96835a3608f4dbc393665",
+      "tag": "6ca93fab405ac7ed76c7cf57225efbc2",
+      "ciphertext": "1c6b1639bfcce1c8b665eda7"
+    },
+    "covid": {
+      "iv": "f12d65fd3e19f2d1d33a516f",
+      "tag": "70da8411a0cbbc8945dcf8085f7f3691",
+      "ciphertext": "af"
+    }
+  },
+  "researcher": {
+    "covid": {
+      "iv": "446e682ebcb982feb322cd43",
+      "tag": "ee3cdbb96f66e945e622b6878c1a9a3f",
+      "ciphertext": "33"
+    }
+  }
+}
