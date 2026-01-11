@@ -1,0 +1,10 @@
+node_modules/
+uploads/
+downloads/
+tmp/
+*.log
+*.save
+.decrypted*
+encrypted*.bin
+circuits/*.json
+circuits/tmp_*
