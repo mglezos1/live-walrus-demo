@@ -1,74 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Selective ZKP Form</title>
-    <style>
-        body { font-family: Arial; padding: 20px; }
-        input { width: 300px; margin: 5px 0; padding: 5px; }
-        button { padding: 10px; width: 200px; }
-        pre { background: #eee; padding: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>ZK Dataset Proof Demo</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+    }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
 
-<h2>Upload Patient Data + Generate Proof</h2>
+<h2>ZK Dataset Proof (Walrus + ZK)</h2>
 
-<label>Patient Name:</label><br>
-<input id="name"><br>
+<h3>1. Upload dataset</h3>
+<input type="file" id="file" />
+<br />
+<button onclick="uploadDataset()">Upload Dataset</button>
 
-<label>Patient ID:</label><br>
-<input id="patientId"><br>
+<p id="uploadStatus"></p>
 
-<label>Gender:</label><br>
-<input id="genderHash"><br>
+<hr />
 
-<label>Address:</label><br>
-<input id="addressHash"><br>
+<h3>2. Prove: AGE ≥ 18 (count)</h3>
+<button onclick="proveAge18Count()">Generate Proof</button>
 
-<label>Symptoms:</label><br>
-<input id="symptoms"><br>
-
-<label>Age:</label><br>
-<input id="age"><br>
-
-<label>COVID Result (0 or 1):</label><br>
-<input id="actual_result"><br>
-
-<br>
-<button onclick="submitZKP()">Generate Proof + Upload</button>
-
-<h3>Server Response:</h3>
-<pre id="responseBox"></pre>
-
-<p>Go to <a href="verify.html">Verify Page</a> to retrieve with access key.</p>
+<pre id="result"></pre>
 
 <script>
-async function submitZKP() {
-    const data = {
-        name: document.getElementById("name").value,
-        patientId: document.getElementById("patientId").value,
-        genderHash: document.getElementById("genderHash").value,
-        addressHash: document.getElementById("addressHash").value,
-        symptoms: document.getElementById("symptoms").value,
-        age: document.getElementById("age").value,
-        actual_result: document.getElementById("actual_result").value,
-        testNonce: "123456"
-    };
+let blobId = null;
 
-    try {
-        const res = await fetch("/submit", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
+async function uploadDataset() {
+  const fileInput = document.getElementById("file");
+  const file = fileInput.files[0];
 
-        const json = await res.json();
-        document.getElementById("responseBox").innerText =
-            JSON.stringify(json, null, 2);
+  if (!file) {
+    alert("Please select a JSON file");
+    return;
+  }
 
-    } catch (err) {
-        document.getElementById("responseBox").innerText = err.toString();
-    }
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch("http://localhost:3000/upload/dataset", {
+    method: "POST",
+    body: form
+  });
+
+  const data = await res.json();
+  blobId = data.blobId;
+
+  document.getElementById("uploadStatus").innerText =
+    "Uploaded successfully. Blob ID:\n" + blobId;
+}
+
+async function proveAge18Count() {
+  if (!blobId) {
+    alert("Upload a dataset first");
+    return;
+  }
+
+  const res = await fetch("http://localhost:3000/proof/age18/count", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ blobId })
+  });
+
+  const data = await res.json();
+
+  if (data.count !== undefined) {
+    document.getElementById("result").innerText =
+      "✔ ZK Proof valid\n\n" +
+      data.count + " out of " + data.total + " records are AGE ≥ 18";
+  } else {
+    document.getElementById("result").innerText =
+      JSON.stringify(data, null, 2);
+  }
 }
 </script>
 

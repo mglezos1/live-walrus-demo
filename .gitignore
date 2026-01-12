@@ -1,10 +1,52 @@
+# --------------------
+# Node / Express
+# --------------------
 node_modules/
+npm-debug.log*
+
+# --------------------
+# Uploads / temp
+# --------------------
 uploads/
 downloads/
 tmp/
 *.log
 *.save
+
+# --------------------
+# Walrus / encryption
+# --------------------
+*.bin
 .decrypted*
 encrypted*.bin
-circuits/*.json
+data/blob_key_registry.json
+
+# --------------------
+# Circom / snarkjs artifacts
+# --------------------
+circuits/*.r1cs
+circuits/*.sym
+circuits/*.zkey
+circuits/*_js/
+circuits/ptau/
 circuits/tmp_*
+
+# Allow source circom + verification keys
+!circuits/*.circom
+!circuits/*_vkey.json
+
+# --------------------
+# Proof outputs
+# --------------------
+proofs/
+*.wtns
+
+# --------------------
+# OS junk
+# --------------------
+.DS_Store
+# snarkjs runtime outputs
+circuits/*_input.json
+circuits/*_proof.json
+circuits/*_public.json
+*.sym
