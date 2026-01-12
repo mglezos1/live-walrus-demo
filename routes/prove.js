@@ -1,9 +1,13 @@
-// routes/prove.js
-const express = require("express");
+import express from "express";
+
 const router = express.Router();
 
+// POST /prove
 router.post("/", async (req, res) => {
-    res.json({ message: "Proof generation endpoint hit (not implemented yet)" });
+  res.json({
+    message: "Generic prove endpoint hit (existing functionality placeholder)"
+  });
 });
 
-module.exports = router;
+export default router;
+

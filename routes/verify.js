@@ -1,9 +1,12 @@
-// routes/verify.js
-const express = require("express");
+import express from "express";
+
 const router = express.Router();
 
+// POST /verify
 router.post("/", async (req, res) => {
-    res.json({ message: "Verification endpoint hit (not implemented yet)" });
+  res.json({
+    message: "verify endpoint hit"
+  });
 });
 
-module.exports = router;
+export default router;

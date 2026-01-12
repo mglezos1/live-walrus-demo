@@ -1,0 +1,12 @@
+[
+  { "age": 12, "condition": "diabetes" },
+  { "age": 15, "condition": "t1d" },
+  { "age": 17, "condition": "type1_diabetes" },
+  { "age": 16, "condition": "asthma" },
+  { "age": 14, "condition": "none" },
+  { "age": 19, "condition": "diabetes" },
+  { "age": 22, "condition": "none" },
+  { "age": 10, "condition": "juvenile_diabetes" },
+  { "age": 8,  "condition": "diabetes" },
+  { "age": 30, "condition": "none" }
+]

@@ -1,10 +1,14 @@
 // utils/zk_fixed.mjs
-// BigInt-safe ZK helper functions
+// BigInt-safe ZK helper functions (ESM)
 
 import * as snarkjs from "snarkjs";
 import fs from "fs/promises";
+import { spawn } from "child_process";
+import path from "path";
 
-// Convert nested BigInts into strings for JSON
+/**
+ * Convert nested BigInts into strings so they can be JSON-serialized
+ */
 function stringifyBigInts(obj) {
     if (typeof obj === "bigint") return obj.toString();
     if (Array.isArray(obj)) return obj.map(stringifyBigInts);
@@ -16,23 +20,30 @@ function stringifyBigInts(obj) {
     return obj;
 }
 
-// Run Circom witness generator
-// -------------------------
-// Generate witness (with captured stdout/stderr)
-// -------------------------
-export async function generateWitness(wasmPath, inputJson, witnessPath) {
-    const { spawn } = await import("child_process");
+/**
+ * Generate a Circom witness
+ *
+ * @param {string} wasmPath - path to circuit .wasm file
+ * @param {string} inputJsonPath - path to input JSON
+ * @param {string} witnessPath - output witness path
+ */
+export async function generateWitness(wasmPath, inputJsonPath, witnessPath) {
+    // Example wasmPath:
+    // circuits/juvenile_diabetes_under_18_count_10_js/juvenile_diabetes_under_18_count_10.wasm
+
+    const wasmDir = path.dirname(wasmPath);
+    const generatorPath = path.join(wasmDir, "generate_witness.cjs");
 
     return new Promise((resolve, reject) => {
         const proc = spawn("node", [
-            "build/covid_result_js/generate_witness.mjs",
+            generatorPath,
             wasmPath,
-            inputJson,
+            inputJsonPath,
             witnessPath
         ]);
 
-        let stderr = "";
         let stdout = "";
+        let stderr = "";
 
         proc.stdout.on("data", (data) => {
             stdout += data.toString();
@@ -46,16 +57,22 @@ export async function generateWitness(wasmPath, inputJson, witnessPath) {
             if (code === 0) {
                 resolve(true);
             } else {
-                reject(new Error(
-                    `Witness generation failed.\nSTDOUT:\n${stdout}\n\nSTDERR:\n${stderr}`
-                ));
+                reject(
+                    new Error(
+                        `Witness generation failed.\nSTDOUT:\n${stdout}\n\nSTDERR:\n${stderr}`
+                    )
+                );
             }
         });
     });
 }
 
-
-// Generate Groth16 proof
+/**
+ * Generate a Groth16 proof
+ *
+ * @param {string} zkeyPath - path to .zkey
+ * @param {string} witnessPath - path to witness
+ */
 export async function generateProof(zkeyPath, witnessPath) {
     const proofData = await snarkjs.groth16.prove(zkeyPath, witnessPath);
 
@@ -65,7 +82,13 @@ export async function generateProof(zkeyPath, witnessPath) {
     };
 }
 
-// Verify Groth16 proof
+/**
+ * Verify a Groth16 proof
+ *
+ * @param {string} vkeyPath - verification key JSON
+ * @param {string} publicJsonPath - public signals JSON
+ * @param {object} proof - proof object
+ */
 export async function verifyProof(vkeyPath, publicJsonPath, proof) {
     const vkey = JSON.parse(await fs.readFile(vkeyPath));
     const publicSignals = JSON.parse(await fs.readFile(publicJsonPath));

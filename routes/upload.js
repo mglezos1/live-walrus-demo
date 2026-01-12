@@ -1,17 +1,13 @@
-// routes/upload.js
-const express = require("express");
-const multer = require("multer");
+import express from "express";
+
 const router = express.Router();
 
-const upload = multer({ dest: "uploads/" });
-
-router.post("/", upload.single("file"), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-
-    res.json({
-        message: "File uploaded successfully",
-        filename: req.file.filename
-    });
+// POST /upload
+router.post("/", async (req, res) => {
+  res.json({
+    status: "upload endpoint hit"
+  });
 });
 
-module.exports = router;
+export default router;
+
