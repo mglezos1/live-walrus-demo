@@ -50,3 +50,6 @@ circuits/*_input.json
 circuits/*_proof.json
 circuits/*_public.json
 *.sym
+# Local ZK test inputs
+input_*.json
+test_dataset_*.json
