@@ -1,83 +1,91 @@
+// routes/proofJuvenileDiabetesUnder18Count.js
 import express from "express";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import fs from "fs";
 
-// ZK helpers (ESM named exports)
-import { generateWitness, generateProof } from "../utils/zk_fixed.mjs";
-
-// Walrus helper (ESM named export)
 import { fetchAndDecryptBlob } from "./utils/walrusDecrypt.js";
+import {
+  generateWitness,
+  generateProof
+} from "../utils/zk_fixed.mjs";
 
 const router = express.Router();
+const CIRCUIT_SIZE = 10;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// POST /proof/juvenile-diabetes/under18/count
 router.post("/", async (req, res) => {
   try {
     const { blobId } = req.body;
-
     if (!blobId) {
       return res.status(400).json({ error: "Missing blobId" });
     }
 
-    // 1. Fetch dataset from Walrus
-    const binPath = fetchAndDecryptBlob({ blobId });
+    // 1️⃣ Fetch JSON from Walrus
+    const datasetPath = fetchAndDecryptBlob({ blobId });
+    const raw = fs.readFileSync(datasetPath, "utf-8");
+    const parsed = JSON.parse(raw);
 
-    // 2. Read + parse JSON
-    const raw = await fs.readFile(binPath, "utf-8");
-    const dataset = JSON.parse(raw);
+    // 2️⃣ Normalize to array (single patient → dataset of 1)
+    const dataset = Array.isArray(parsed) ? parsed : [parsed];
 
-    // 3. Extract ZK inputs
-    const ages = dataset.map(p => p.age);
+    // 3️⃣ Build fixed-size circuit inputs
+    const ages = [];
+    const conditions = [];
 
-const diabeticLabels = new Set([
-  "diabetes",
-  "juvenile_diabetes",
-  "type1_diabetes",
-  "t1d"
-]);
+    for (let i = 0; i < CIRCUIT_SIZE; i++) {
+      const record = dataset[i];
 
-const conditions = dataset.map(p =>
-  diabeticLabels.has(p.condition?.toLowerCase()) ? 1 : 0
-);
+      if (record) {
+        ages.push(Number(record.age || 0));
 
+        const conditionStr = String(
+          record.condition || record.diagnosis || ""
+        ).toLowerCase();
 
+        // juvenile diabetes flag (1 = yes, 0 = no)
+        conditions.push(
+          conditionStr.includes("diab") || conditionStr.includes("t1d")
+            ? 1
+            : 0
+        );
+      } else {
+        // padding
+        ages.push(0);
+        conditions.push(0);
+      }
+    }
+
+    // 4️⃣ EXACTLY match circuit inputs
     const input = { ages, conditions };
+    fs.writeFileSync(
+      "input_juvenile_diabetes.json",
+      JSON.stringify(input, null, 2)
+    );
 
-    // 4. Write input + witness paths
-    const tmpDir = path.join(__dirname, "../tmp");
-    const inputPath = path.join(tmpDir, "juvenile_input.json");
-    const witnessPath = path.join(tmpDir, "juvenile_witness.wtns");
-
-    await fs.mkdir(tmpDir, { recursive: true });
-    await fs.writeFile(inputPath, JSON.stringify(input));
-
-    // 5. Generate witness
+    // 5️⃣ Generate witness
     await generateWitness(
       "circuits/juvenile_diabetes_under_18_count_10_js/juvenile_diabetes_under_18_count_10.wasm",
-      inputPath,
-      witnessPath
+      "input_juvenile_diabetes.json",
+      "witness_juvenile_diabetes.wtns"
     );
 
-    // 6. Generate proof
-    const proofResult = await generateProof(
+    // 6️⃣ Generate proof
+    const { proof, publicSignals } = await generateProof(
       "circuits/juvenile_diabetes_under_18_count_10.zkey",
-      witnessPath
+      "witness_juvenile_diabetes.wtns"
     );
 
+    // 7️⃣ Respond
     res.json({
-      count: Number(proofResult.publicSignals[0]),
+      count: Number(publicSignals[0]),
       total: dataset.length,
-      proof: proofResult.proof,
-      publicSignals: proofResult.publicSignals
+      proof,
+      publicSignals
     });
-
   } catch (err) {
-    console.error("Juvenile diabetes ZK proof failed:", err);
-    res.status(500).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({
+      error: "Proof failed",
+      details: err.message
+    });
   }
 });
 

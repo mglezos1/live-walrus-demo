@@ -1,94 +1,155 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ZK Dataset Proof Demo</title>
-
+  <title>Zero-Knowledge Medical Analytics</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
+      margin: 40px;
+      max-width: 800px;
     }
-    button {
+    section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+    input, button {
       padding: 10px;
       margin-top: 10px;
+      width: 100%;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+      background: #222;
+      color: white;
+      border: none;
     }
     pre {
       background: #f4f4f4;
-      padding: 10px;
-      white-space: pre-wrap;
+      padding: 15px;
+      overflow-x: auto;
     }
+    .success { color: green; }
+    .error { color: red; }
   </style>
 </head>
 <body>
 
-<h2>ZK Dataset Proof (Walrus + ZK)</h2>
+<h1>🔐 Zero-Knowledge Medical Analytics</h1>
 
-<h3>1. Upload dataset</h3>
-<input type="file" id="file" />
-<br />
-<button onclick="uploadDataset()">Upload Dataset</button>
+<p>
+  Upload a medical dataset, store it on Walrus, then prove —
+  using zero-knowledge — how many patients are under 18 and diabetic.
+</p>
 
-<p id="uploadStatus"></p>
+<section>
+  <h2>1️⃣ Upload Dataset</h2>
 
-<hr />
+  <input type="file" id="datasetFile" accept=".json" />
 
-<h3>2. Prove: AGE ≥ 18 (count)</h3>
-<button onclick="proveAge18Count()">Generate Proof</button>
+  <button onclick="uploadDataset()">
+    Upload Dataset to Walrus
+  </button>
 
-<pre id="result"></pre>
+  <div id="uploadResult"></div>
+</section>
+
+<section>
+  <h2>2️⃣ Run ZK Proof</h2>
+
+  <input
+    id="blobId"
+    type="text"
+    placeholder="Blob ID will appear here after upload"
+  />
+
+  <button onclick="runProof()">
+    Run ZK Proof (Under-18 Diabetic Count)
+  </button>
+
+  <div id="proofResult"></div>
+</section>
 
 <script>
-let blobId = null;
+  // MUST be global (not inside another function)
 
-async function uploadDataset() {
-  const fileInput = document.getElementById("file");
-  const file = fileInput.files[0];
+  async function uploadDataset() {
+    const fileInput = document.getElementById("datasetFile");
+    const resultDiv = document.getElementById("uploadResult");
 
-  if (!file) {
-    alert("Please select a JSON file");
-    return;
+    if (!fileInput.files.length) {
+      alert("Please select a JSON file.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    resultDiv.innerHTML = "<p>Uploading to Walrus…</p>";
+
+    try {
+      const res = await fetch("http://localhost:3000/upload/dataset", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      document.getElementById("blobId").value = data.blobId;
+
+      resultDiv.innerHTML = `
+        <p class="success">Upload successful</p>
+        <pre>${data.blobId}</pre>
+      `;
+    } catch (err) {
+      resultDiv.innerHTML = `
+        <p class="error">Upload failed</p>
+        <pre>${err.message}</pre>
+      `;
+    }
   }
 
-  const form = new FormData();
-  form.append("file", file);
+  async function runProof() {
+    const blobId = document.getElementById("blobId").value.trim();
+    const resultDiv = document.getElementById("proofResult");
 
-  const res = await fetch("http://localhost:3000/upload/dataset", {
-    method: "POST",
-    body: form
-  });
+    if (!blobId) {
+      alert("Upload a dataset first.");
+      return;
+    }
 
-  const data = await res.json();
-  blobId = data.blobId;
+    resultDiv.innerHTML = "<p>Running ZK proof…</p>";
 
-  document.getElementById("uploadStatus").innerText =
-    "Uploaded successfully. Blob ID:\n" + blobId;
-}
+    try {
+      const res = await fetch(
+        "http://localhost:3000/proof/juvenile-diabetes/under18/count",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ blobId })
+        }
+      );
 
-async function proveAge18Count() {
-  if (!blobId) {
-    alert("Upload a dataset first");
-    return;
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      resultDiv.innerHTML = `
+        <p class="success">Proof complete</p>
+        <p><strong>Count:</strong> ${data.count}</p>
+        <p><strong>Total:</strong> ${data.total}</p>
+        <pre>${JSON.stringify(data.publicSignals, null, 2)}</pre>
+      `;
+    } catch (err) {
+      resultDiv.innerHTML = `
+        <p class="error">Proof failed</p>
+        <pre>${err.message}</pre>
+      `;
+    }
   }
-
-  const res = await fetch("http://localhost:3000/proof/age18/count", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ blobId })
-  });
-
-  const data = await res.json();
-
-  if (data.count !== undefined) {
-    document.getElementById("result").innerText =
-      "✔ ZK Proof valid\n\n" +
-      data.count + " out of " + data.total + " records are AGE ≥ 18";
-  } else {
-    document.getElementById("result").innerText =
-      JSON.stringify(data, null, 2);
-  }
-}
 </script>
 
 </body>
