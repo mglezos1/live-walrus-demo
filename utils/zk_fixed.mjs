@@ -1,97 +1,72 @@
 // utils/zk_fixed.mjs
-// BigInt-safe ZK helper functions (ESM)
-
-import * as snarkjs from "snarkjs";
-import fs from "fs/promises";
-import { spawn } from "child_process";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import path from "path";
+import fs from "fs";
+import { spawn } from "child_process";
 
-/**
- * Convert nested BigInts into strings so they can be JSON-serialized
- */
-function stringifyBigInts(obj) {
-    if (typeof obj === "bigint") return obj.toString();
-    if (Array.isArray(obj)) return obj.map(stringifyBigInts);
-    if (typeof obj === "object" && obj !== null) {
-        const out = {};
-        for (const k in obj) out[k] = stringifyBigInts(obj[k]);
-        return out;
-    }
-    return obj;
+const execFileAsync = promisify(execFile);
+
+// --------------------------------------------------
+// Generate witness using generate_witness.cjs
+// --------------------------------------------------
+export async function generateWitness(wasmPath, inputPath, witnessPath) {
+  const dir = path.dirname(wasmPath);
+  const generator = path.join(dir, "generate_witness.cjs");
+
+  if (!fs.existsSync(generator)) {
+    throw new Error(`generate_witness.cjs not found in ${dir}`);
+  }
+
+  if (!fs.existsSync(inputPath)) {
+    throw new Error(`Input file not found: ${inputPath}`);
+  }
+
+  await execFileAsync(
+    "node",
+    [generator, inputPath, witnessPath],
+    { cwd: dir }
+  );
 }
 
-/**
- * Generate a Circom witness
- *
- * @param {string} wasmPath - path to circuit .wasm file
- * @param {string} inputJsonPath - path to input JSON
- * @param {string} witnessPath - output witness path
- */
-export async function generateWitness(wasmPath, inputJsonPath, witnessPath) {
-    // Example wasmPath:
-    // circuits/juvenile_diabetes_under_18_count_10_js/juvenile_diabetes_under_18_count_10.wasm
-
-    const wasmDir = path.dirname(wasmPath);
-    const generatorPath = path.join(wasmDir, "generate_witness.cjs");
-
-    return new Promise((resolve, reject) => {
-        const proc = spawn("node", [
-            generatorPath,
-            wasmPath,
-            inputJsonPath,
-            witnessPath
-        ]);
-
-        let stdout = "";
-        let stderr = "";
-
-        proc.stdout.on("data", (data) => {
-            stdout += data.toString();
-        });
-
-        proc.stderr.on("data", (data) => {
-            stderr += data.toString();
-        });
-
-        proc.on("close", (code) => {
-            if (code === 0) {
-                resolve(true);
-            } else {
-                reject(
-                    new Error(
-                        `Witness generation failed.\nSTDOUT:\n${stdout}\n\nSTDERR:\n${stderr}`
-                    )
-                );
-            }
-        });
-    });
-}
-
-/**
- * Generate a Groth16 proof
- *
- * @param {string} zkeyPath - path to .zkey
- * @param {string} witnessPath - path to witness
- */
+// --------------------------------------------------
+// Generate Groth16 proof (ESM-safe)
+// --------------------------------------------------
 export async function generateProof(zkeyPath, witnessPath) {
-    const proofData = await snarkjs.groth16.prove(zkeyPath, witnessPath);
+  if (!fs.existsSync(zkeyPath)) {
+    throw new Error(`zkey not found: ${zkeyPath}`);
+  }
 
-    return {
-        proof: stringifyBigInts(proofData.proof),
-        publicSignals: stringifyBigInts(proofData.publicSignals)
-    };
+  if (!fs.existsSync(witnessPath)) {
+    throw new Error(`witness not found: ${witnessPath}`);
+  }
+
+  return new Promise((resolve, reject) => {
+    const proc = spawn("snarkjs", [
+      "groth16",
+      "prove",
+      zkeyPath,
+      witnessPath,
+      "proof.json",
+      "public.json"
+    ]);
+
+    proc.on("error", reject);
+
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`snarkjs exited with code ${code}`));
+        return;
+      }
+
+      try {
+        const proof = JSON.parse(fs.readFileSync("proof.json", "utf8"));
+        const publicSignals = JSON.parse(fs.readFileSync("public.json", "utf8"));
+        resolve({ proof, publicSignals });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  });
 }
 
-/**
- * Verify a Groth16 proof
- *
- * @param {string} vkeyPath - verification key JSON
- * @param {string} publicJsonPath - public signals JSON
- * @param {object} proof - proof object
- */
-export async function verifyProof(vkeyPath, publicJsonPath, proof) {
-    const vkey = JSON.parse(await fs.readFile(vkeyPath));
-    const publicSignals = JSON.parse(await fs.readFile(publicJsonPath));
-
-    return snarkjs.groth16.verify(vkey, publicSignals, proof);
-}

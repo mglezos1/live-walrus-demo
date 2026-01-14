@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ZK Proof Capability Manager</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px;
+      max-width: 800px;
+    }
+
+    input, select, button {
+      padding: 6px;
+      margin: 6px 0;
+      width: 100%;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .cap {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-top: 12px;
+    }
+
+    .danger {
+      background: #c0392b;
+      color: white;
+    }
+
+    .success {
+      background: #27ae60;
+      color: white;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+<h2>ZK Proof Capability Manager</h2>
+
+<label>Walrus Blob ID</label>
+<input id="blobId" placeholder="Enter Walrus blob ID" />
+
+<label>Proof Type</label>
+<select id="proofType"></select>
+
+<button class="success" onclick="createCapability()">
+  Create Capability
+</button>
+
+<h3>Capabilities</h3>
+<div id="capabilities"></div>
+
+<h3>Output</h3>
+<pre id="output"></pre>
+
+<script>
+const API = "http://localhost:3000";
+
+/**
+ * 🔑 Supported proof types
+ * This MUST match backend PROOF_TYPES keys
+ */
+const PROOF_TYPES = {
+  count_under_18_diabetes: "Count under 18 with diabetes",
+  // add more here later:
+  // count_under_18: "Count under 18",
+  // age_over_18_count: "Count age 18+"
+};
+
+const capabilities = [];
+
+/**
+ * Populate dropdown
+ */
+const proofTypeSelect = document.getElementById("proofType");
+for (const [key, label] of Object.entries(PROOF_TYPES)) {
+  const opt = document.createElement("option");
+  opt.value = key;
+  opt.textContent = label;
+  proofTypeSelect.appendChild(opt);
+}
+
+function log(msg) {
+  document.getElementById("output").textContent =
+    typeof msg === "string" ? msg : JSON.stringify(msg, null, 2);
+}
+
+/**
+ * Create a new capability
+ */
+async function createCapability() {
+  const blobId = document.getElementById("blobId").value;
+  const proofType = document.getElementById("proofType").value;
+
+  if (!blobId) {
+    alert("Blob ID required");
+    return;
+  }
+
+  const res = await fetch(`${API}/capabilities`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ blobId, proofType })
+  });
+
+  const data = await res.json();
+  capabilities.push(data);
+  renderCapabilities();
+  log(data);
+}
+
+/**
+ * Generate proof using capability
+ */
+async function generateProof(capabilityId) {
+  const res = await fetch(`${API}/capabilities/${capabilityId}/prove`, {
+    method: "POST"
+  });
+
+  const data = await res.json();
+  log(data);
+}
+
+/**
+ * Revoke capability
+ */
+async function revokeCapability(capabilityId) {
+  const res = await fetch(`${API}/capabilities/${capabilityId}/revoke`, {
+    method: "POST"
+  });
+
+  const data = await res.json();
+  log(data);
+}
+
+/**
+ * Render capability list
+ */
+function renderCapabilities() {
+  const container = document.getElementById("capabilities");
+  container.innerHTML = "";
+
+  for (const cap of capabilities) {
+    const div = document.createElement("div");
+    div.className = "cap";
+
+    div.innerHTML = `
+      <strong>Capability ID:</strong><br>
+      ${cap.capabilityId}<br><br>
+
+      <strong>Proof Type:</strong><br>
+      ${PROOF_TYPES[cap.proofType] || cap.proofType}<br><br>
+
+      <button onclick="generateProof('${cap.capabilityId}')">
+        Generate Proof
+      </button>
+
+      <button class="danger" onclick="revokeCapability('${cap.capabilityId}')">
+        Revoke
+      </button>
+    `;
+
+    container.appendChild(div);
+  }
+}
+</script>
+
+</body>
+</html>

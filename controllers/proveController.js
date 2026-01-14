@@ -1,59 +1,82 @@
 // controllers/proveController.js
-import path from "path";
+
 import fs from "fs/promises";
+import path from "path";
 import { fileURLToPath } from "url";
 
 import { generateWitness, generateProof } from "../utils/zk_fixed.mjs";
-import { computeCommitment } from "../utils/commitment.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export async function proveController(req, res) {
+// --------------------------------------------------
+// Proof Type 1: count_under_18_diabetes
+// --------------------------------------------------
+export async function generateJuvenileDiabetesUnder18CountProof(blobId) {
   try {
-    const { patientId, testNonce, result } = req.body;
+    const inputPath = path.join(__dirname, "../input_juvenile_diabetes.json");
 
-    if (patientId === undefined || testNonce === undefined || result === undefined) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    const wasmPath = path.join(
+      __dirname,
+      "../circuits/juvenile_diabetes_under_18_count_10_js/juvenile_diabetes_under_18_count_10.wasm"
+    );
 
-    // Compute Poseidon commitment (BigInt)
-    const commitmentBig = await computeCommitment(patientId, testNonce, result);
+    const zkeyPath = path.join(
+      __dirname,
+      "../circuits/juvenile_diabetes_under_18_count_10.zkey"
+    );
 
-    // Build the input.json EXACTLY the way Circom expects:
-    const input = {
-      patientId: Number(patientId),
-      testNonce: Number(testNonce),
-      result: Number(result),
-      commitment: commitmentBig,      // <-- REAL BigInt, NOT STRING
-      claimedResult: Number(result)
+    const witnessPath = path.join(
+      __dirname,
+      "../witness_juvenile_diabetes.wtns"
+    );
+
+    await generateWitness(wasmPath, inputPath, witnessPath);
+    const { proof, publicSignals } = await generateProof(zkeyPath, witnessPath);
+
+    return {
+      count: Number(publicSignals[0]),
+      total: 10,
+      publicSignals,
+      proof
     };
-
-    const inputPath = path.join(__dirname, "../build/input.json");
-    await fs.writeFile(inputPath, JSON.stringify(input));
-
-    const wasm = path.join(__dirname, "../build/covid_result_js/covid_result.wasm");
-    const witness = path.join(__dirname, "../build/witness.wtns");
-    const zkey = path.join(__dirname, "../build/covid_result_final.zkey");
-    const publicJson = path.join(__dirname, "../build/public.json");
-
-    // Generate witness
-    await generateWitness(wasm, inputPath, witness);
-
-    // Generate proof
-    const { proof, publicSignals } = await generateProof(zkey, witness);
-
-    // Save publicSignals
-    await fs.writeFile(publicJson, JSON.stringify(publicSignals));
-
-    return res.json({
-      commitment: commitmentBig.toString(),
-      proof,
-      publicSignals
-    });
-
   } catch (err) {
-    console.error("proveController error:", err);
-    return res.status(500).json({ error: err.message });
+    throw new Error(`ZK proof failed: ${err.message}`);
+  }
+}
+
+// --------------------------------------------------
+// Proof Type 2: count_over_18
+// --------------------------------------------------
+export async function generateAgeOver18CountProof(blobId) {
+  try {
+    const inputPath = path.join(__dirname, "../input_age_over_18.json");
+
+    const wasmPath = path.join(
+      __dirname,
+      "../circuits/age_over_18_count_10_js/age_over_18_count_10.wasm"
+    );
+
+    const zkeyPath = path.join(
+      __dirname,
+      "../circuits/age_over_18_count_10.zkey"
+    );
+
+    const witnessPath = path.join(
+      __dirname,
+      "../witness_age_over_18.wtns"
+    );
+
+    await generateWitness(wasmPath, inputPath, witnessPath);
+    const { proof, publicSignals } = await generateProof(zkeyPath, witnessPath);
+
+    return {
+      count: Number(publicSignals[0]),
+      total: 10,
+      publicSignals,
+      proof
+    };
+  } catch (err) {
+    throw new Error(`ZK proof failed: ${err.message}`);
   }
 }

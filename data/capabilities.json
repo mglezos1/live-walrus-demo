@@ -1,0 +1,16 @@
+{
+  "cap_956988ae3840dfd2": {
+    "capabilityId": "cap_956988ae3840dfd2",
+    "blobId": "6ezpw8mmXkBkjGFllKltfrHlsd4Xc90ejJdreqsDU1Q",
+    "proofType": "count_under_18_diabetes",
+    "active": true,
+    "createdAt": 1768337057983
+  },
+  "cap_6d1b072bd3b38689": {
+    "capabilityId": "cap_6d1b072bd3b38689",
+    "blobId": "6ezpw8mmXkBkjGFllKltfrHlsd4Xc90ejJdreqsDU1Q",
+    "proofType": "count_over_18",
+    "active": true,
+    "createdAt": 1768338302931
+  }
+}

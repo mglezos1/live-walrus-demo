@@ -4,6 +4,8 @@ const bodyParser = require("body-parser");
 const fs = require("fs");
 const crypto = require("crypto");
 const { execSync } = require("child_process");
+const capabilityRoutes = require("./routes/capabilities");
+app.use("/capabilities", capabilityRoutes);
 
 const app = express();
 app.use(cors());

@@ -1,71 +1,142 @@
 // controllers/proveFromWalrusController.js
+
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { generateWitness, generateProof } from "../utils/zk_fixed.mjs";
-import { computeCommitment } from "../utils/commitment.mjs";
 
 const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * PROOF TYPE REGISTRY
+ * Each entry defines how to generate a proof
+ * for a given proofType.
+ */
+const PROOF_TYPES = {
+  count_under_18_diabetes: {
+    wasm: "circuits/juvenile_diabetes_under_18_count_10_js/juvenile_diabetes_under_18_count_10.wasm",
+    witnessGen: "circuits/juvenile_diabetes_under_18_count_10_js/generate_witness.cjs",
+    zkey: "circuits/juvenile_diabetes_under_18_count_10.zkey",
+    maxRecords: 10,
+
+    /**
+     * Map dataset → circuit inputs
+     */
+    mapInputs(dataset) {
+      const ages = [];
+      const conditions = [];
+
+      for (let i = 0; i < this.maxRecords; i++) {
+        const row = dataset[i] || {};
+        ages.push(Number(row.age || 0));
+        conditions.push(row.condition === "diabetes" ? 1 : 0);
+      }
+
+      return { ages, conditions };
+    }
+  }
+};
+
+/**
+ * Main proof controller
+ */
 export async function proveFromWalrusController(req, res) {
   try {
-    const { blobId } = req.body;
-    if (!blobId) return res.status(400).json({ error: "Missing blobId" });
+    const { blobId, proofType } = req.body;
 
-    const filePath = path.join(__dirname, "../downloads", `${blobId}.json`);
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    if (!blobId || !proofType) {
+      return res.status(400).json({
+        error: "blobId and proofType are required"
+      });
+    }
 
-    // 1️⃣ Download blob from Walrus
-    const readCmd = `walrus read ${blobId} --wallet ~/.sui/sui_config/client.yaml > ${filePath}`;
-    await execAsync(readCmd);
+    const config = PROOF_TYPES[proofType];
+    if (!config) {
+      return res.status(400).json({
+        error: `Unsupported proofType: ${proofType}`
+      });
+    }
 
-    // 2️⃣ Parse JSON content
-    const data = JSON.parse(await fs.readFile(filePath, "utf8"));
-    const { patient, result } = data;
+    // -------------------------
+    // 1️⃣ Download dataset
+    // -------------------------
+    const downloadsDir = path.join(__dirname, "../downloads");
+    await fs.mkdir(downloadsDir, { recursive: true });
 
-    // 3️⃣ Convert readable data → numeric inputs
-    const patientId = patient === "Alice" ? 12345 : 67890;
-    const testNonce = 9876543;
-    const resultNum = result === "Positive" ? 1 : 0;
+    const datasetPath = path.join(downloadsDir, `${blobId}.json`);
+    await execAsync(
+      `walrus read ${blobId} --wallet ~/.sui/sui_config/client.yaml > ${datasetPath}`
+    );
 
-    // 4️⃣ Compute Poseidon commitment
-    const field = BigInt("21888242871839275222246405745257275088548364400416034343698204186575808495617");
-    const commitmentBig = await computeCommitment(patientId, testNonce, resultNum);
-    const commitmentField = (BigInt(commitmentBig) % field).toString();
+    const dataset = JSON.parse(
+      await fs.readFile(datasetPath, "utf8")
+    );
 
-    // ✅ All Circom inputs must be strings to avoid float conversion
-    const input = {
-      patientId: patientId.toString(),
-      testNonce: testNonce.toString(),
-      result: resultNum.toString(),
-      commitment: commitmentField,
-      claimedResult: resultNum.toString()
-    };
+    if (!Array.isArray(dataset)) {
+      return res.status(400).json({ error: "Dataset must be an array" });
+    }
 
-    const inputPath = path.join(__dirname, "../build/input_from_walrus.json");
+    // -------------------------
+    // 2️⃣ Map inputs
+    // -------------------------
+    const input = config.mapInputs(dataset);
+    const inputPath = path.join(downloadsDir, "input.json");
+
     await fs.writeFile(inputPath, JSON.stringify(input, null, 2));
 
-    // 5️⃣ Generate witness + proof
-    const wasm = path.join(__dirname, "../build/covid_result_js/covid_result.wasm");
-    const witness = path.join(__dirname, "../build/witness_from_walrus.wtns");
-    const zkey = path.join(__dirname, "../build/covid_result_final.zkey");
+    // -------------------------
+    // 3️⃣ Generate witness
+    // -------------------------
+    const witnessPath = path.join(downloadsDir, "witness.wtns");
 
-    await generateWitness(wasm, inputPath, witness);
-    const { proof, publicSignals } = await generateProof(zkey, witness);
+    const witnessCmd = `
+node ${config.witnessGen} \
+${config.wasm} \
+${inputPath} \
+${witnessPath}
+`.trim();
 
+    await execAsync(witnessCmd);
+
+    // -------------------------
+    // 4️⃣ Generate proof
+    // -------------------------
+    const proofPath = path.join(downloadsDir, "proof.json");
+    const publicPath = path.join(downloadsDir, "public.json");
+
+    const proveCmd = `
+snarkjs groth16 prove \
+${config.zkey} \
+${witnessPath} \
+${proofPath} \
+${publicPath}
+`.trim();
+
+    await execAsync(proveCmd);
+
+    const proof = JSON.parse(await fs.readFile(proofPath, "utf8"));
+    const publicSignals = JSON.parse(await fs.readFile(publicPath, "utf8"));
+
+    // -------------------------
+    // 5️⃣ Return
+    // -------------------------
     return res.json({
-      message: "✅ ZK proof generated from Walrus data",
+      message: "✅ ZK proof generated",
       blobId,
-      proof,
-      publicSignals
+      proofType,
+      result: Number(publicSignals[0]),
+      publicSignals,
+      proof
     });
 
   } catch (err) {
     console.error("proveFromWalrusController error:", err);
-    return res.status(500).json({ error: err.message });
+    return res.status(500).json({
+      error: "Proof generation failed",
+      details: err.message
+    });
   }
 }
