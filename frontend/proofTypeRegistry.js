@@ -1,40 +1,18 @@
-// proofTypeRegistry.js
+// Proof registry — single source of truth
+export const PROOF_TYPES = {
+  1: {
+    name: "Count under 18 & pregnant",
+    endpoint: "/proof/merkle-count",
+    circuit: "capability_bound_count_merkle_v2"
+  },
 
-const proofTypes = {};
-
-/**
- * Register a new proof type
- */
-function register({ proofType, description }) {
-  if (proofTypes[proofType]) {
-    throw new Error("Proof type already exists");
+  2: {
+    name: "Count positive condition (generic)",
+    endpoint: "/proof/merkle-count",
+    circuit: "capability_bound_count_merkle_v2"
   }
 
-  proofTypes[proofType] = {
-    proofType,
-    description,
-    createdAt: Date.now()
-  };
-
-  return proofTypes[proofType];
-}
-
-/**
- * List all proof types
- */
-function list() {
-  return Object.values(proofTypes);
-}
-
-/**
- * Get proof type
- */
-function get(proofType) {
-  return proofTypes[proofType];
-}
-
-export default {
-  register,
-  list,
-  get
+  // Future:
+  // 3: average
+  // 4: threshold
 };

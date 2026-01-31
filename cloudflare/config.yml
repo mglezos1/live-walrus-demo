@@ -1,0 +1,7 @@
+tunnel: <tunnel-id>
+credentials-file: /etc/cloudflared/credentials.json
+
+ingress:
+  - hostname: walrus-mvp.yourdomain.com
+    service: http://backend:3000
+  - service: http_status:404

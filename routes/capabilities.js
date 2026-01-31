@@ -1,93 +1,56 @@
 import express from "express";
 import crypto from "crypto";
-
-import capabilityRegistry from "../capabilityRegistry.js";
-import { dispatchProof } from "../controllers/proofDispatcher.js";
+import { issueCapability, listCapabilities } from "../capabilityRegistry.js";
 
 const router = express.Router();
 
-// -----------------------------
-// CREATE CAPABILITY
-// -----------------------------
-router.post("/", (req, res) => {
-  const { blobId, proofType } = req.body;
+/*
+  POST /capabilities/issue
 
-  if (!blobId || !proofType) {
+  Body:
+  {
+    datasetId: string,
+    fieldIndex: number,
+    expectedValue: number
+  }
+*/
+router.post("/issue", (req, res) => {
+  const { datasetId, fieldIndex, expectedValue } = req.body;
+
+  if (
+    typeof datasetId !== "string" ||
+    typeof fieldIndex !== "number" ||
+    typeof expectedValue !== "number"
+  ) {
     return res.status(400).json({
-      error: "blobId and proofType required"
+      error: "datasetId, fieldIndex, and expectedValue required"
     });
   }
 
-  const capabilityId = "cap_" + crypto.randomBytes(8).toString("hex");
+  const datasetIdHash = parseInt(
+    crypto
+      .createHash("sha256")
+      .update(datasetId)
+      .digest("hex")
+      .slice(0, 8),
+    16
+  );
 
-  capabilityRegistry.create({
-    capabilityId,
-    blobId,
-    proofType
+  const cap = issueCapability({
+    datasetIdHash,
+    fieldIndex,
+    expectedValue
   });
 
-  res.json({
-    capabilityId,
-    proofType
-  });
+  res.json(cap);
 });
 
-// -----------------------------
-// GENERATE PROOF (ON DEMAND)
-// -----------------------------
-router.post("/:id/prove", async (req, res) => {
-  const capability = capabilityRegistry.get(req.params.id);
-
-  if (!capability) {
-    return res.status(404).json({ error: "Capability not found" });
-  }
-
-  if (!capability.active) {
-    return res.status(403).json({ error: "Capability revoked" });
-  }
-
-  try {
-    const result = await dispatchProof({
-      proofType: capability.proofType,
-      blobId: capability.blobId
-    });
-
-    res.json({
-      capabilityId: capability.capabilityId,
-      proofType: capability.proofType,
-      blobId: capability.blobId,
-      ...result
-    });
-  } catch (err) {
-    res.status(400).json({
-      error: err.message
-    });
-  }
-});
-
-// -----------------------------
-// REVOKE CAPABILITY
-// -----------------------------
-router.post("/:id/revoke", (req, res) => {
-  const capability = capabilityRegistry.get(req.params.id);
-
-  if (!capability) {
-    return res.status(404).json({ error: "Capability not found" });
-  }
-
-  capability.active = false;
-
-  res.json({
-    capabilityId: capability.capabilityId,
-    revoked: true
-  });
-});
-
-// -----------------------------
-// LIST ALL CAPABILITIES (OPTIONAL)
-// -----------------------------
+/*
+  GET /capabilities
+*/
 router.get("/", (req, res) => {
-  res.json(capabilityRegistry.list());
+  res.json(listCapabilities());
 });
 
 export default router;
+

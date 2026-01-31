@@ -1,16 +1,43 @@
-{
-  "cap_956988ae3840dfd2": {
-    "capabilityId": "cap_956988ae3840dfd2",
-    "blobId": "6ezpw8mmXkBkjGFllKltfrHlsd4Xc90ejJdreqsDU1Q",
-    "proofType": "count_under_18_diabetes",
-    "active": true,
-    "createdAt": 1768337057983
+[
+  {
+    "datasetIdHash": 2676412545,
+    "fieldIndex": 0,
+    "expectedValue": 1
   },
-  "cap_6d1b072bd3b38689": {
-    "capabilityId": "cap_6d1b072bd3b38689",
-    "blobId": "6ezpw8mmXkBkjGFllKltfrHlsd4Xc90ejJdreqsDU1Q",
-    "proofType": "count_over_18",
-    "active": true,
-    "createdAt": 1768338302931
+  {
+    "datasetIdHash": 1974719181,
+    "fieldIndex": 0,
+    "expectedValue": 30
+  },
+  {
+    "datasetIdHash": 1974719181,
+    "fieldIndex": 0,
+    "expectedValue": 30
+  },
+  {
+    "datasetIdHash": 3611794395,
+    "fieldIndex": 0,
+    "expectedValue": 1
+  },
+  {
+    "id": "cap_d81aac3d75f0",
+    "datasetIdHash": 3611794395,
+    "fieldIndex": 0,
+    "expectedValue": 1,
+    "issuedAt": 1769667225911
+  },
+  {
+    "id": "cap_0a2a9e4cac27",
+    "datasetIdHash": 3611794395,
+    "fieldIndex": 0,
+    "expectedValue": 1,
+    "issuedAt": 1769667375418
+  },
+  {
+    "id": "cap_432324dded2c",
+    "datasetIdHash": 3611794395,
+    "fieldIndex": 0,
+    "expectedValue": 1,
+    "issuedAt": 1769667425575
   }
-}
+]

@@ -4,9 +4,15 @@
   "type": "module",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "dev": "node app.js",
+    "build:circuits": "bash scripts/build-circuits.sh",
+    "deploy:contracts": "bash scripts/deploy-contracts.sh",
+    "deploy": "bash scripts/deploy.sh",
+    "setup:cloudflare": "bash scripts/setup-cloudflare.sh"
   },
   "dependencies": {
+    "@mysten/sui.js": "^0.49.1",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "cors": "^2.8.5",

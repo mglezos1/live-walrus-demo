@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Owner - ZK Medical Dataset Access</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .section h2 {
+      color: #667eea;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    input[type="file"],
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      border-radius: 4px;
+      display: none;
+    }
+    .result.error {
+      background: #ffebee;
+      border-left-color: #f44336;
+    }
+    .result pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+    .dataset-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .dataset-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .dataset-card h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .dataset-card p {
+      color: #666;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Data Owner Portal</h1>
+
+    <!-- Upload Dataset Section -->
+    <div class="section">
+      <h2>1. Upload Dataset</h2>
+      <div class="form-group">
+        <label for="datasetFile">Select Dataset File (JSON):</label>
+        <input type="file" id="datasetFile" accept=".json">
+      </div>
+      <button onclick="uploadDataset()">Upload Dataset</button>
+      <div id="uploadResult" class="result"></div>
+    </div>
+
+    <!-- Issue Capability Section -->
+    <div class="section">
+      <h2>2. Issue Capability</h2>
+      <div class="form-group">
+        <label for="capabilityDatasetId">Dataset ID Hash:</label>
+        <input type="text" id="capabilityDatasetId" placeholder="Enter dataset ID hash">
+      </div>
+      <div class="form-group">
+        <label for="capabilityQueryType">Query Type:</label>
+        <select id="capabilityQueryType">
+          <option value="aggregate">Aggregate</option>
+          <option value="range">Range</option>
+          <option value="condition">Condition</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="capabilityQueryParams">Query Parameters (JSON):</label>
+        <textarea id="capabilityQueryParams" rows="4" placeholder='{"field": "age", "operator": ">", "value": 18}'></textarea>
+      </div>
+      <div class="form-group">
+        <label for="capabilityExpiresAt">Expires At (optional, timestamp):</label>
+        <input type="number" id="capabilityExpiresAt" placeholder="Leave empty for 24h default">
+      </div>
+      <button onclick="issueCapability()">Issue Capability</button>
+      <div id="capabilityResult" class="result"></div>
+    </div>
+
+    <!-- My Datasets Section -->
+    <div class="section">
+      <h2>3. My Datasets</h2>
+      <button onclick="loadDatasets()">Refresh Datasets</button>
+      <div id="datasetsList" class="dataset-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    async function uploadDataset() {
+      const fileInput = document.getElementById('datasetFile');
+      const resultDiv = document.getElementById('uploadResult');
+      
+      if (!fileInput.files[0]) {
+        showResult(resultDiv, 'Please select a file', true);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        showResult(resultDiv, 'Uploading dataset...', false);
+        const response = await fetch(`${API_BASE}/datasets/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          showResult(resultDiv, `✅ Dataset uploaded successfully!\n\nBlob ID: ${data.blobId}\nDataset Hash: ${data.datasetHash}\nRecord Count: ${data.recordCount}`, false);
+          loadDatasets();
+        } else {
+          showResult(resultDiv, `❌ Error: ${data.error}\n${data.details || ''}`, true);
+        }
+      } catch (error) {
+        showResult(resultDiv, `❌ Upload failed: ${error.message}`, true);
+      }
+    }
+
+    async function issueCapability() {
+      const datasetIdHash = document.getElementById('capabilityDatasetId').value;
+      const queryType = document.getElementById('capabilityQueryType').value;
+      const queryParamsText = document.getElementById('capabilityQueryParams').value;
+      const expiresAt = document.getElementById('capabilityExpiresAt').value;
+      const resultDiv = document.getElementById('capabilityResult');
+
+      if (!datasetIdHash) {
+        showResult(resultDiv, 'Please enter dataset ID hash', true);
+        return;
+      }
+
+      let queryParams = {};
+      if (queryParamsText) {
+        try {
+          queryParams = JSON.parse(queryParamsText);
+        } catch (e) {
+          showResult(resultDiv, 'Invalid JSON in query parameters', true);
+          return;
+        }
+      }
+
+      const payload = {
+        dataset_id_hash: datasetIdHash,
+        query_type: queryType,
+        query_params: queryParams,
+      };
+
+      if (expiresAt) {
+        payload.expires_at = parseInt(expiresAt);
+      }
+
+      try {
+        showResult(resultDiv, 'Issuing capability...', false);
+        const response = await fetch(`${API_BASE}/capabilities/issue`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          showResult(resultDiv, `✅ Capability issued!\n\nCapability ID: ${data.capability.id}\nQuery Type: ${data.capability.query_type}\nExpires At: ${new Date(data.capability.expires_at).toLocaleString()}`, false);
+        } else {
+          showResult(resultDiv, `❌ Error: ${data.error}\n${data.details || ''}`, true);
+        }
+      } catch (error) {
+        showResult(resultDiv, `❌ Failed to issue capability: ${error.message}`, true);
+      }
+    }
+
+    async function loadDatasets() {
+      const listDiv = document.getElementById('datasetsList');
+      
+      try {
+        const response = await fetch(`${API_BASE}/datasets`);
+        const data = await response.json();
+        
+        if (response.ok && Array.isArray(data)) {
+          listDiv.innerHTML = data.map(dataset => `
+            <div class="dataset-card">
+              <h3>${dataset.datasetId || 'Unknown'}</h3>
+              <p><strong>Hash:</strong> ${dataset.datasetIdHash || 'N/A'}</p>
+              <p><strong>Root:</strong> ${dataset.datasetRoot || 'N/A'}</p>
+              <p><strong>Records:</strong> ${dataset.values?.length || 0}</p>
+            </div>
+          `).join('');
+        } else {
+          listDiv.innerHTML = '<p>No datasets found</p>';
+        }
+      } catch (error) {
+        listDiv.innerHTML = `<p>Error loading datasets: ${error.message}</p>`;
+      }
+    }
+
+    function showResult(div, message, isError) {
+      div.textContent = message;
+      div.style.display = 'block';
+      div.className = `result ${isError ? 'error' : ''}`;
+    }
+
+    // Load datasets on page load
+    loadDatasets();
+  </script>
+</body>
+</html>

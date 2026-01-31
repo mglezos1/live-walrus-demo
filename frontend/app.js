@@ -1,67 +1,132 @@
-async function uploadDataset() {
-  const fileInput = document.getElementById("datasetFile");
-  const resultBox = document.getElementById("uploadResult");
+// --------------------------------------------------
+// CONFIG
+// --------------------------------------------------
 
-  if (!fileInput.files.length) {
-    resultBox.textContent = "Please select a file.";
-    return;
-  }
+const BACKEND = "http://127.0.0.1:3000";
 
-  const formData = new FormData();
-  formData.append("file", fileInput.files[0]);
+// --------------------------------------------------
+// 1. DATA OWNER — ISSUE ACCESS KEY
+// Used by: uploader.html
+// --------------------------------------------------
 
-  resultBox.textContent = "Uploading and encrypting dataset...";
+async function issueAccessKey() {
+  const role = document.getElementById("role").value;
+  const resultEl = document.getElementById("uploaderResult");
+
+  resultEl.textContent = "Issuing access key...";
 
   try {
-    const res = await fetch("/upload/dataset", {
+    const res = await fetch(`${BACKEND}/capabilities/issue`, {
       method: "POST",
-      body: formData
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role,
+        ttlSeconds: 3600
+      })
     });
 
     const data = await res.json();
-    resultBox.textContent = JSON.stringify(data, null, 2);
 
-    if (data.blobId) {
-      document.getElementById("blobIdInput").value = data.blobId;
+    if (!data.success) {
+      throw new Error(data.error || "Key issuance failed");
     }
+
+    resultEl.textContent =
+      "ACCESS KEY ISSUED:\n\n" +
+      data.capability +
+      "\n\nThis key controls what proofs the researcher may generate.";
+
   } catch (err) {
-    resultBox.textContent = "Upload failed.";
+    resultEl.textContent = "Error issuing key:\n" + err.message;
   }
 }
 
-async function generateProof() {
-  const blobId = document.getElementById("blobIdInput").value;
-  const role = document.getElementById("roleSelect").value;
-  const resultBox = document.getElementById("proofResult");
+// --------------------------------------------------
+// 2. RESEARCHER — GENERATE PROOF
+// Used by: researcher.html
+// --------------------------------------------------
 
-  if (!blobId) {
-    resultBox.textContent = "Blob ID required.";
+async function generateProof() {
+  const capability = document.getElementById("capability").value.trim();
+  const conditionsText = document.getElementById("conditions").value;
+  const resultEl = document.getElementById("researcherResult");
+
+  resultEl.textContent = "Generating proof...";
+
+  let conditions;
+  try {
+    conditions = JSON.parse(conditionsText);
+  } catch {
+    resultEl.textContent = "Invalid conditions JSON";
     return;
   }
 
-  resultBox.textContent = "Generating zero-knowledge proof...";
-
   try {
-    const res = await fetch("/proof/age18", {
+    const res = await fetch(`${BACKEND}/proof/generic-count-v2`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ blobId, accessKey: role })
+      body: JSON.stringify({
+        capability,
+        conditions
+      })
     });
 
     const data = await res.json();
 
-    if (data.proof) {
-      resultBox.textContent =
-        "✅ Proof successful\n\n" +
-        "Rule: AGE ≥ 18\n" +
-        "Dataset commitment:\n" +
-        data.dataset_hash +
-        "\n\n(Technical proof data hidden by default)\n\n" +
-        JSON.stringify(data, null, 2);
-    } else {
-      resultBox.textContent = JSON.stringify(data, null, 2);
+    if (!data.success) {
+      throw new Error(data.error || "Proof generation failed");
     }
+
+    resultEl.textContent =
+      "PROOF GENERATED\n\n" +
+      "Count (public): " + data.count + "\n\n" +
+      "Proof:\n" + JSON.stringify(data.proof, null, 2) + "\n\n" +
+      "Public Signals:\n" + JSON.stringify(data.publicSignals, null, 2);
+
   } catch (err) {
-    resultBox.textContent = "Proof generation failed.";
+    resultEl.textContent = "Error generating proof:\n" + err.message;
+  }
+}
+
+// --------------------------------------------------
+// 3. VERIFIER — VERIFY PROOF
+// Used by: verify.html
+// --------------------------------------------------
+
+async function verifyProof() {
+  const proofText = document.getElementById("proof").value;
+  const publicSignalsText = document.getElementById("publicSignals").value;
+  const resultEl = document.getElementById("verifyResult");
+
+  resultEl.textContent = "Verifying proof...";
+
+  let proof, publicSignals;
+  try {
+    proof = JSON.parse(proofText);
+    publicSignals = JSON.parse(publicSignalsText);
+  } catch {
+    resultEl.textContent = "Invalid JSON input";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BACKEND}/proof/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        circuit: "count_v2",
+        proof,
+        publicSignals
+      })
+    });
+
+    const data = await res.json();
+
+    resultEl.textContent = data.valid
+      ? "✅ PROOF IS VALID\n\nThe computation was performed correctly."
+      : "❌ PROOF IS INVALID\n\nThe computation cannot be trusted.";
+
+  } catch (err) {
+    resultEl.textContent = "Error verifying proof:\n" + err.message;
   }
 }

@@ -1,77 +1,89 @@
-// utils/buildCircuitInputs.js
-import { operatorMap } from "./operatorMap.js";
+/*
+buildCircuitInputs.js
 
-/**
- * Build inputs for count_one_condition.circom
- *
- * Circuit semantics:
- *   (age comparison) AND (flag == cond_flag)
- *
- * For flag-only conditions, we force:
- *   age >= 0
- */
-export function buildCircuitInputs(dataset, conditions) {
-  const N = 10;
-  const C = 3;
+Builds circuit inputs for:
+- V1 generic count circuit
+- V2 generic count circuit (with cond_field)
+*/
 
-  // -----------------------------
-  // Normalize dataset
-  // -----------------------------
-  const records = dataset.slice(0, N);
-  while (records.length < N) records.push({});
+export function buildCircuitInputs(
+  dataset,
+  conditions,
+  options = {}
+) {
+  const VERSION = options.version || "v1";
 
-  const ages = [];
-  const flags = [];
+  const N = 10; // dataset size
+  const C = 3;  // max conditions
 
-  for (let i = 0; i < N; i++) {
-    ages.push(records[i].age ?? 0);
-    flags.push(records[i].pregnant ?? 0);
-  }
+  // -------------------------
+  // Initialize arrays
+  // -------------------------
+  const ages = Array(N).fill(0);
+  const flags = Array(N).fill(0);
 
-  // -----------------------------
-  // Normalize conditions
-  // -----------------------------
-  const conds = conditions.slice(0, C);
-  while (conds.length < C) conds.push(null);
+  const cond_op = Array(C).fill(0);
+  const cond_threshold = Array(C).fill(0);
+  const cond_flag = Array(C).fill(0);
+  const cond_enabled = Array(C).fill(0);
 
-  const cond_op = [];
-  const cond_threshold = [];
-  const cond_flag = [];
-  const cond_enabled = [];
+  // V2 only
+  const cond_field = Array(C).fill(0);
 
-  for (let j = 0; j < C; j++) {
-    const cond = conds[j];
+  // -------------------------
+  // Fill dataset
+  // -------------------------
+  dataset.slice(0, N).forEach((row, i) => {
+    if (typeof row.age === "number") {
+      ages[i] = row.age;
+    }
+    if (typeof row.pregnant === "number") {
+      flags[i] = row.pregnant;
+    }
+  });
 
-    if (!cond) {
-      cond_op.push(0);
-      cond_threshold.push(0);
-      cond_flag.push(0);
-      cond_enabled.push(0);
-      continue;
+  // -------------------------
+  // Fill conditions
+  // -------------------------
+  conditions.slice(0, C).forEach((cond, j) => {
+    cond_enabled[j] = 1;
+
+    // operator
+    if (cond.op === "==") cond_op[j] = 0;
+    else if (cond.op === ">=") cond_op[j] = 1;
+    else if (cond.op === "<=") cond_op[j] = 2;
+
+    // V2: field selector
+    if (VERSION === "v2") {
+      if (cond.field === "age") cond_field[j] = 0;
+      else cond_field[j] = 1;
     }
 
-    // 🔹 Flag-only condition (pregnant)
-    if (cond.field === "pregnant") {
-      cond_op.push(operatorMap[">="]);   // age >= 0 (always true)
-      cond_threshold.push(0);
-      cond_flag.push(cond.value);        // pregnant == 1
-      cond_enabled.push(1);
-      continue;
+    // thresholds / flags
+    if (cond.field === "age") {
+      cond_threshold[j] = cond.value;
+      cond_flag[j] = 0; // unused
+    } else {
+      cond_threshold[j] = 0; // unused
+      cond_flag[j] = cond.value;
     }
+  });
 
-    // 🔹 Age condition
-    cond_op.push(operatorMap[cond.op]);
-    cond_threshold.push(cond.value);
-    cond_flag.push(1);                   // require pregnant == 1
-    cond_enabled.push(1);
-  }
-
-  return {
+  // -------------------------
+  // Return inputs
+  // -------------------------
+  const input = {
     ages,
     flags,
     cond_op,
     cond_threshold,
     cond_flag,
-    cond_enabled
+    cond_enabled,
   };
+
+  if (VERSION === "v2") {
+    input.cond_field = cond_field;
+  }
+
+  return input;
 }

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifier - ZK Medical Dataset Access</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .section h2 {
+      color: #f5576c;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #f5576c;
+    }
+    button {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      border-radius: 4px;
+      display: none;
+    }
+    .result.error {
+      background: #ffebee;
+      border-left-color: #f44336;
+    }
+    .result pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .proof-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-top: 15px;
+    }
+    .proof-card h3 {
+      color: #f5576c;
+      margin-bottom: 15px;
+    }
+    .proof-card .field {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    .proof-card .field strong {
+      color: #555;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .proof-card .field span {
+      color: #333;
+      font-family: 'Courier New', monospace;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .status-verified {
+      background: #4caf50;
+      color: white;
+    }
+    .status-pending {
+      background: #ff9800;
+      color: white;
+    }
+    .status-invalid {
+      background: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>✅ Verifier Portal</h1>
+
+    <!-- Query Proof by ID Section -->
+    <div class="section">
+      <h2>1. Query Proof by ID</h2>
+      <div class="form-group">
+        <label for="proofId">Proof ID:</label>
+        <input type="text" id="proofId" placeholder="Enter proof ID">
+      </div>
+      <button onclick="queryProof()">Query Proof</button>
+      <div id="proofResult" class="result"></div>
+      <div id="proofCard" class="proof-card" style="display: none;"></div>
+    </div>
+
+    <!-- Query Proofs by Dataset Section -->
+    <div class="section">
+      <h2>2. Query Proofs by Dataset</h2>
+      <div class="form-group">
+        <label for="datasetBlobId">Blob ID:</label>
+        <input type="text" id="datasetBlobId" placeholder="Enter dataset blob ID">
+      </div>
+      <button onclick="queryProofsByDataset()">Query Proofs</button>
+      <div id="datasetProofsResult" class="result"></div>
+      <div id="proofsList"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    async function queryProof() {
+      const proofId = document.getElementById('proofId').value;
+      const resultDiv = document.getElementById('proofResult');
+      const cardDiv = document.getElementById('proofCard');
+
+      if (!proofId) {
+        showResult(resultDiv, 'Please enter proof ID', true);
+        return;
+      }
+
+      try {
+        showResult(resultDiv, 'Querying proof...', false);
+        
+        const response = await fetch(`${API_BASE}/verifier/proofs/${proofId}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          if (data.proof_result) {
+            displayProofCard(data.proof_result);
+            showResult(resultDiv, '✅ Proof found', false);
+          } else {
+            showResult(resultDiv, 'Proof not found', true);
+            cardDiv.style.display = 'none';
+          }
+        } else {
+          showResult(resultDiv, `❌ Error: ${data.error}\n${data.details || ''}`, true);
+          cardDiv.style.display = 'none';
+        }
+      } catch (error) {
+        showResult(resultDiv, `❌ Failed to query proof: ${error.message}`, true);
+        cardDiv.style.display = 'none';
+      }
+    }
+
+    async function queryProofsByDataset() {
+      const blobId = document.getElementById('datasetBlobId').value;
+      const resultDiv = document.getElementById('datasetProofsResult');
+      const listDiv = document.getElementById('proofsList');
+
+      if (!blobId) {
+        showResult(resultDiv, 'Please enter blob ID', true);
+        return;
+      }
+
+      try {
+        showResult(resultDiv, 'Querying proofs...', false);
+        
+        const response = await fetch(`${API_BASE}/verifier/datasets/${blobId}/proofs`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          if (data.proofs && data.proofs.length > 0) {
+            listDiv.innerHTML = data.proofs.map(proof => `
+              <div class="proof-card">
+                ${displayProofContent(proof)}
+              </div>
+            `).join('');
+            showResult(resultDiv, `✅ Found ${data.proofs.length} proof(s)`, false);
+          } else {
+            listDiv.innerHTML = '<p>No proofs found for this dataset</p>';
+            showResult(resultDiv, 'No proofs found', false);
+          }
+        } else {
+          showResult(resultDiv, `❌ Error: ${data.error}\n${data.details || ''}`, true);
+        }
+      } catch (error) {
+        showResult(resultDiv, `❌ Failed to query proofs: ${error.message}`, true);
+      }
+    }
+
+    function displayProofCard(proof) {
+      const cardDiv = document.getElementById('proofCard');
+      cardDiv.innerHTML = displayProofContent(proof);
+      cardDiv.style.display = 'block';
+    }
+
+    function displayProofContent(proof) {
+      const status = proof.verified_at ? 'verified' : 'pending';
+      const statusClass = status === 'verified' ? 'status-verified' : 'status-pending';
+      
+      return `
+        <h3>Proof: ${proof.proof_id || 'N/A'}</h3>
+        <div class="field">
+          <strong>Blob ID:</strong>
+          <span>${proof.blob_id || 'N/A'}</span>
+        </div>
+        <div class="field">
+          <strong>Public Output:</strong>
+          <span>${proof.public_output || 'N/A'}</span>
+        </div>
+        <div class="field">
+          <strong>Verified At:</strong>
+          <span>${proof.verified_at ? new Date(proof.verified_at).toLocaleString() : 'Not verified'}</span>
+        </div>
+        <div class="field">
+          <strong>Verifier Address:</strong>
+          <span>${proof.verifier_address || 'N/A'}</span>
+        </div>
+        <div class="field">
+          <strong>Circuit ID:</strong>
+          <span>${proof.circuit_id || 'N/A'}</span>
+        </div>
+        <span class="status-badge ${statusClass}">${status.toUpperCase()}</span>
+      `;
+    }
+
+    function showResult(div, message, isError) {
+      div.textContent = message;
+      div.style.display = 'block';
+      div.className = `result ${isError ? 'error' : ''}`;
+    }
+  </script>
+</body>
+</html>

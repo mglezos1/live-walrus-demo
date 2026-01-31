@@ -53,3 +53,26 @@ circuits/*_public.json
 # Local ZK test inputs
 input_*.json
 test_dataset_*.json
+
+# --------------------
+# Environment / Secrets
+# --------------------
+.env
+.env.local
+.env.*.local
+cloudflare/credentials.json
+keys/*.json
+!keys/.gitkeep
+
+# --------------------
+# Docker
+# --------------------
+.docker/
+docker-compose.override.yml
+
+# --------------------
+# Build artifacts
+# --------------------
+build/
+dist/
+*.tar.gz

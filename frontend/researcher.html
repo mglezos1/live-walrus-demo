@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Researcher - ZK Medical Dataset Access</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 30px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .section h2 {
+      color: #11998e;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #11998e;
+    }
+    button {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+      border-radius: 4px;
+      display: none;
+    }
+    .result.error {
+      background: #ffebee;
+      border-left-color: #f44336;
+    }
+    .result pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .capability-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .capability-card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .capability-card:hover {
+      transform: translateY(-2px);
+    }
+    .capability-card.selected {
+      border: 2px solid #11998e;
+    }
+    .capability-card h3 {
+      color: #11998e;
+      margin-bottom: 10px;
+    }
+    .capability-card p {
+      color: #666;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔬 Researcher Portal</h1>
+
+    <!-- Select Capability Section -->
+    <div class="section">
+      <h2>1. Select Capability</h2>
+      <button onclick="loadCapabilities()">Load Capabilities</button>
+      <div id="capabilitiesList" class="capability-list"></div>
+      <div id="selectedCapability" style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px; display: none;">
+        <h3>Selected Capability</h3>
+        <pre id="selectedCapabilityInfo"></pre>
+      </div>
+    </div>
+
+    <!-- Generate Proof Section -->
+    <div class="section">
+      <h2>2. Generate Proof</h2>
+      <div class="form-group">
+        <label for="proofBlobId">Blob ID:</label>
+        <input type="text" id="proofBlobId" placeholder="Enter blob ID from dataset">
+      </div>
+      <div class="form-group">
+        <label for="proofType">Proof Type:</label>
+        <select id="proofType">
+          <option value="count_aggregate">Count Aggregate</option>
+          <option value="sum_aggregate">Sum Aggregate</option>
+          <option value="range_query">Range Query</option>
+          <option value="condition_query">Condition Query</option>
+        </select>
+      </div>
+      <button onclick="generateProof()" id="generateBtn">Generate Proof</button>
+      <div id="proofResult" class="result"></div>
+    </div>
+
+    <!-- Submit Proof Section -->
+    <div class="section">
+      <h2>3. Submit Proof to Blockchain</h2>
+      <div class="form-group">
+        <label for="submitProofId">Proof ID:</label>
+        <input type="text" id="submitProofId" placeholder="From generated proof">
+      </div>
+      <div class="form-group">
+        <label for="submitBlobId">Blob ID:</label>
+        <input type="text" id="submitBlobId" placeholder="Blob ID">
+      </div>
+      <div class="form-group">
+        <label for="submitCircuitId">Circuit ID:</label>
+        <input type="text" id="submitCircuitId" placeholder="Circuit identifier">
+      </div>
+      <button onclick="submitProof()">Submit Proof</button>
+      <div id="submitResult" class="result"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let selectedCapabilityId = null;
+    let lastProof = null;
+
+    async function loadCapabilities() {
+      const listDiv = document.getElementById('capabilitiesList');
+      
+      try {
+        const response = await fetch(`${API_BASE}/capabilities`);
+        const data = await response.json();
+        
+        if (response.ok && Array.isArray(data.capabilities)) {
+          listDiv.innerHTML = data.capabilities.map(cap => `
+            <div class="capability-card" onclick="selectCapability('${cap.id}', ${JSON.stringify(cap).replace(/"/g, '&quot;')})">
+              <h3>${cap.id}</h3>
+              <p><strong>Type:</strong> ${cap.query_type}</p>
+              <p><strong>Dataset Hash:</strong> ${cap.dataset_id_hash?.substring(0, 16)}...</p>
+              <p><strong>Expires:</strong> ${new Date(cap.expires_at).toLocaleString()}</p>
+            </div>
+          `).join('');
+        } else {
+          listDiv.innerHTML = '<p>No capabilities available</p>';
+        }
+      } catch (error) {
+        listDiv.innerHTML = `<p>Error loading capabilities: ${error.message}</p>`;
+      }
+    }
+
+    function selectCapability(id, capability) {
+      selectedCapabilityId = id;
+      document.querySelectorAll('.capability-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      event.currentTarget.classList.add('selected');
+      
+      const infoDiv = document.getElementById('selectedCapability');
+      const infoPre = document.getElementById('selectedCapabilityInfo');
+      infoDiv.style.display = 'block';
+      infoPre.textContent = JSON.stringify(capability, null, 2);
+    }
+
+    async function generateProof() {
+      const blobId = document.getElementById('proofBlobId').value;
+      const proofType = document.getElementById('proofType').value;
+      const resultDiv = document.getElementById('proofResult');
+      const generateBtn = document.getElementById('generateBtn');
+
+      if (!blobId) {
+        showResult(resultDiv, 'Please enter blob ID', true);
+        return;
+      }
+
+      if (!selectedCapabilityId) {
+        showResult(resultDiv, 'Please select a capability first', true);
+        return;
+      }
+
+      try {
+        generateBtn.disabled = true;
+        showResult(resultDiv, 'Generating proof... This may take a while.', false);
+        
+        const response = await fetch(`${API_BASE}/proofs/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            blob_id: blobId,
+            capability_id: selectedCapabilityId,
+            proof_type: proofType
+          })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          lastProof = data;
+          showResult(resultDiv, `✅ Proof generated!\n\nProof ID: ${data.proof_id}\nPublic Output: ${data.public_output}\n\nProof data:\n${JSON.stringify(data, null, 2)}`, false);
+          
+          // Auto-fill submit form
+          document.getElementById('submitProofId').value = data.proof_id;
+          document.getElementById('submitBlobId').value = blobId;
+        } else {
+          showResult(resultDiv, `❌ Error: ${data.error}\n${data.details || ''}`, true);
+        }
+      } catch (error) {
+        showResult(resultDiv, `❌ Failed to generate proof: ${error.message}`, true);
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    async function submitProof() {
+      const proofId = document.getElementById('submitProofId').value;
+      const blobId = document.getElementById('submitBlobId').value;
+      const circuitId = document.getElementById('submitCircuitId').value;
+      const resultDiv = document.getElementById('submitResult');
+
+      if (!proofId || !blobId || !circuitId) {
+        showResult(resultDiv, 'Please fill in all fields', true);
+        return;
+      }
+
+      if (!lastProof) {
+        showResult(resultDiv, 'Please generate a proof first', true);
+        return;
+      }
+
+      try {
+        showResult(resultDiv, 'Submitting proof to blockchain...', false);
+        
+        const response = await fetch(`${API_BASE}/proofs/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            proof_id: proofId,
+            blob_id: blobId,
+            proof: lastProof.proof,
+            public_signals: lastProof.public_signals,
+            circuit_id: circuitId,
+            public_output: lastProof.public_output
+          })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          showResult(resultDiv, `✅ Proof submitted successfully!\n\nTransaction Digest: ${data.transaction_digest}\n\nTransaction Result:\n${JSON.stringify(data.transaction_result, null, 2)}`, false);
+        } else {
+          showResult(resultDiv, `❌ Error: ${data.error}\n${data.details || ''}`, true);
+        }
+      } catch (error) {
+        showResult(resultDiv, `❌ Failed to submit proof: ${error.message}`, true);
+      }
+    }
+
+    function showResult(div, message, isError) {
+      div.textContent = message;
+      div.style.display = 'block';
+      div.className = `result ${isError ? 'error' : ''}`;
+    }
+
+    // Load capabilities on page load
+    loadCapabilities();
+  </script>
+</body>
+</html>

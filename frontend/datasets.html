@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Datasets</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Registered Datasets</h1>
+
+  <button onclick="loadDatasets()">Refresh</button>
+
+  <pre id="datasetsOutput">Loading…</pre>
+
+  <script>
+    async function loadDatasets() {
+      const res = await fetch("/datasets");
+      const datasets = await res.json();
+
+      if (datasets.length === 0) {
+        document.getElementById("datasetsOutput").textContent =
+          "No datasets registered yet.";
+        return;
+      }
+
+      document.getElementById("datasetsOutput").textContent =
+        JSON.stringify(datasets, null, 2);
+    }
+
+    loadDatasets();
+  </script>
+</body>
+</html>
+

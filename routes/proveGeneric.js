@@ -1,12 +1,9 @@
-// routes/proveGeneric.js
 import express from "express";
-import { proveGenericCount } from "../controllers/proveGenericCountController.js";
+import proveParamCount from "../controllers/proveParamCountController.js";
 
 const router = express.Router();
 
-/**
- * POST /proof/generic-count
- */
-router.post("/generic-count", proveGenericCount);
+router.post("/param-count", proveParamCount);
 
 export default router;
+

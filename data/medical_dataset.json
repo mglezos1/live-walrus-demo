@@ -1,0 +1,6 @@
+[
+  { "patient_id": 1, "age": 17, "pregnant": 1, "blood_pressure": 120 },
+  { "patient_id": 2, "age": 25, "pregnant": 0, "blood_pressure": 130 },
+  { "patient_id": 3, "age": 16, "pregnant": 1, "blood_pressure": 110 },
+  { "patient_id": 4, "age": 40, "pregnant": 0, "blood_pressure": 140 }
+]

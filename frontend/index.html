@@ -1,156 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>Zero-Knowledge Medical Analytics</title>
+  <title>ZK Proof Playground</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      max-width: 800px;
+      font-family: monospace;
+      background: #111;
+      color: #eee;
+      padding: 20px;
     }
-    section {
-      margin-top: 30px;
-      padding-top: 20px;
-      border-top: 1px solid #ddd;
-    }
-    input, button {
-      padding: 10px;
-      margin-top: 10px;
+    textarea, input, button, select {
       width: 100%;
-      font-size: 14px;
+      margin: 5px 0 15px 0;
+      padding: 8px;
+      background: #222;
+      color: #eee;
+      border: 1px solid #444;
     }
     button {
       cursor: pointer;
-      background: #222;
-      color: white;
-      border: none;
+    }
+    .box {
+      border: 1px solid #333;
+      padding: 15px;
+      margin-bottom: 20px;
     }
     pre {
-      background: #f4f4f4;
-      padding: 15px;
+      background: #000;
+      padding: 10px;
       overflow-x: auto;
     }
-    .success { color: green; }
-    .error { color: red; }
   </style>
 </head>
+
 <body>
+  <h1>ZK Proof Playground</h1>
 
-<h1>🔐 Zero-Knowledge Medical Analytics</h1>
+  <div class="box">
+    <h2>1. Issue Capability</h2>
+    <select id="role">
+      <option value="researcher">researcher</option>
+    </select>
+    <button onclick="issueCapability()">Issue Capability</button>
+    <textarea id="capability" rows="3"
+      placeholder="Capability token will appear here"></textarea>
+  </div>
 
-<p>
-  Upload a medical dataset, store it on Walrus, then prove —
-  using zero-knowledge — how many patients are under 18 and diabetic.
-</p>
+  <div class="box">
+    <h2>2. Dataset (JSON)</h2>
+    <textarea id="dataset" rows="8">
+[
+  { "age": 17, "pregnant": 1 },
+  { "age": 22, "pregnant": 0 },
+  { "age": 15, "pregnant": 1 }
+]
+    </textarea>
+  </div>
 
-<section>
-  <h2>1️⃣ Upload Dataset</h2>
+  <div class="box">
+    <h2>3. Conditions (JSON)</h2>
+    <textarea id="conditions" rows="6">
+[
+  { "field": "age", "op": "<=", "value": 18 },
+  { "field": "pregnant", "op": "==", "value": 1 }
+]
+    </textarea>
+  </div>
 
-  <input type="file" id="datasetFile" accept=".json" />
+  <div class="box">
+    <h2>4. Generate Proof</h2>
+    <button onclick="generateProof()">Generate Proof</button>
+    <pre id="proofOutput"></pre>
+  </div>
 
-  <button onclick="uploadDataset()">
-    Upload Dataset to Walrus
-  </button>
+  <div class="box">
+    <h2>5. Verify Proof</h2>
+    <button onclick="verifyProof()">Verify Proof</button>
+    <pre id="verifyOutput"></pre>
+  </div>
 
-  <div id="uploadResult"></div>
-</section>
-
-<section>
-  <h2>2️⃣ Run ZK Proof</h2>
-
-  <input
-    id="blobId"
-    type="text"
-    placeholder="Blob ID will appear here after upload"
-  />
-
-  <button onclick="runProof()">
-    Run ZK Proof (Under-18 Diabetic Count)
-  </button>
-
-  <div id="proofResult"></div>
-</section>
-
-<script>
-  // MUST be global (not inside another function)
-
-  async function uploadDataset() {
-    const fileInput = document.getElementById("datasetFile");
-    const resultDiv = document.getElementById("uploadResult");
-
-    if (!fileInput.files.length) {
-      alert("Please select a JSON file.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
-
-    resultDiv.innerHTML = "<p>Uploading to Walrus…</p>";
-
-    try {
-      const res = await fetch("http://localhost:3000/upload/dataset", {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-
-      if (data.error) throw new Error(data.error);
-
-      document.getElementById("blobId").value = data.blobId;
-
-      resultDiv.innerHTML = `
-        <p class="success">Upload successful</p>
-        <pre>${data.blobId}</pre>
-      `;
-    } catch (err) {
-      resultDiv.innerHTML = `
-        <p class="error">Upload failed</p>
-        <pre>${err.message}</pre>
-      `;
-    }
-  }
-
-  async function runProof() {
-    const blobId = document.getElementById("blobId").value.trim();
-    const resultDiv = document.getElementById("proofResult");
-
-    if (!blobId) {
-      alert("Upload a dataset first.");
-      return;
-    }
-
-    resultDiv.innerHTML = "<p>Running ZK proof…</p>";
-
-    try {
-      const res = await fetch(
-        "http://localhost:3000/proof/juvenile-diabetes/under18/count",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ blobId })
-        }
-      );
-
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-
-      resultDiv.innerHTML = `
-        <p class="success">Proof complete</p>
-        <p><strong>Count:</strong> ${data.count}</p>
-        <p><strong>Total:</strong> ${data.total}</p>
-        <pre>${JSON.stringify(data.publicSignals, null, 2)}</pre>
-      `;
-    } catch (err) {
-      resultDiv.innerHTML = `
-        <p class="error">Proof failed</p>
-        <pre>${err.message}</pre>
-      `;
-    }
-  }
-</script>
-
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Data Owner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h1>Data Owner</h1>
+
+<hr />
+
+<h2>Upload Dataset (JSON file)</h2>
+
+<label>
+  Dataset ID:
+  <input id="datasetId" placeholder="dataset:test" />
+</label>
+
+<br /><br />
+
+<label>
+  Select JSON file:
+  <input id="datasetFile" type="file" accept=".json" />
+</label>
+
+<br /><br />
+
+<button onclick="uploadDataset()">Upload Dataset</button>
+
+<pre id="datasetOutput"></pre>
+
+<hr />
+
+<h2>Issue Capability</h2>
+
+<label>
+  Field Index (0–9):
+  <input id="fieldIndex" type="number" min="0" max="9" />
+</label>
+
+<br /><br />
+
+<label>
+  Expected Value:
+  <input id="expectedValue" type="number" />
+</label>
+
+<br /><br />
+
+<button onclick="issueCapability()">Issue Capability</button>
+
+<pre id="capabilityOutput"></pre>
+
+<script>
+async function uploadDataset() {
+  const datasetId = document.getElementById("datasetId").value;
+  const fileInput = document.getElementById("datasetFile");
+  const file = fileInput.files[0];
+
+  if (!datasetId) {
+    alert("Dataset ID is required");
+    return;
+  }
+
+  if (!file) {
+    alert("Please select a JSON file");
+    return;
+  }
+
+  const text = await file.text();
+  let parsed;
+
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    alert("Invalid JSON file");
+    return;
+  }
+
+  if (!Array.isArray(parsed.values)) {
+    alert("JSON must contain a 'values' array");
+    return;
+  }
+
+  const res = await fetch("/datasets/upload", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      datasetId,
+      values: parsed.values
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("datasetOutput").textContent =
+    JSON.stringify(data, null, 2);
+}
+
+async function issueCapability() {
+  const datasetId = document.getElementById("datasetId").value;
+  const fieldIndex = Number(document.getElementById("fieldIndex").value);
+  const expectedValue = Number(
+    document.getElementById("expectedValue").value
+  );
+
+  if (!datasetId) {
+    alert("Dataset ID is required");
+    return;
+  }
+
+  const res = await fetch("/capabilities/issue", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      datasetId,
+      fieldIndex,
+      expectedValue
+    })
+  });
+
+  const data = await res.json();
+  document.getElementById("capabilityOutput").textContent =
+    JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>
+

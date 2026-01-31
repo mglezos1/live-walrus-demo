@@ -1,48 +1,54 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Verify ZK Proof</title>
-  <style>
-    body { font-family: Arial; padding: 20px; }
-    input { width: 300px; margin: 5px 0; padding: 5px; }
-    button { padding: 10px; width: 200px; }
-    pre { background: #eee; padding: 10px; }
-  </style>
+  <meta charset="UTF-8" />
+  <title>Verifier — Check Proof</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <h1>Verifier</h1>
 
-<h2>Retrieve Patient Result</h2>
+  <section>
+    <h2>Proof</h2>
+    <textarea id="proofInput" rows="10" cols="80"></textarea>
+  </section>
 
-<label>Blob ID:</label><br>
-<input id="blobId"><br>
+  <section>
+    <h2>Public Signals</h2>
+    <textarea id="publicInput" rows="5" cols="80"></textarea>
+  </section>
 
-<label>Access Key (doctor123 or research123):</label><br>
-<input id="accessKey"><br><br>
+  <button onclick="verify()">Verify Proof</button>
 
-<button onclick="retrieve()">Retrieve + Apply Access Key</button>
+  <section>
+    <h2>Result</h2>
+    <pre id="result">No verification yet</pre>
+  </section>
 
-<h3>Server Response:</h3>
-<pre id="responseBox"></pre>
+  <script>
+    async function verify() {
+      try {
+        const proof = JSON.parse(
+          document.getElementById("proofInput").value
+        );
+        const publicSignals = JSON.parse(
+          document.getElementById("publicInput").value
+        );
 
-<p><a href="index.html">Back to Upload Page</a></p>
+        const res = await fetch("/proof/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ proof, publicSignals })
+        });
 
-<script>
-async function retrieve() {
-  const data = {
-    blobId: document.getElementById("blobId").value,
-    accessKey: document.getElementById("accessKey").value
-  };
-
-  const res = await fetch("/retrieve", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-
-  const json = await res.json();
-  document.getElementById("responseBox").innerText = JSON.stringify(json, null, 2);
-}
-</script>
-
+        const result = await res.json();
+        document.getElementById("result").textContent =
+          result.valid ? "✅ VALID PROOF" : "❌ INVALID PROOF";
+      } catch (e) {
+        document.getElementById("result").textContent =
+          "Invalid JSON input";
+      }
+    }
+  </script>
 </body>
 </html>
