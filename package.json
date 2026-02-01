@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "node app.js",
+    "dev:frontend": "cd frontend-react && npm run dev",
+    "build:frontend": "cd frontend-react && npm install && npm run build",
     "build:circuits": "bash scripts/build-circuits.sh",
     "deploy:contracts": "bash scripts/deploy-contracts.sh",
     "deploy": "bash scripts/deploy.sh",
@@ -18,6 +20,7 @@
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "multer": "^2.0.2",
-    "snarkjs": "^0.7.5"
+    "snarkjs": "^0.7.5",
+    "xlsx": "^0.18.5"
   }
 }
