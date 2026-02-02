@@ -174,6 +174,7 @@ export function prepareVerifyingKeyForSui(vkeyJson) {
  * Register dataset on-chain
  * @param {SuiClient} client - Sui client
  * @param {string} packageId - DatasetRegistry package ID
+ * @param {string} registryObjectId - Registry shared object ID
  * @param {string} blobId - Blob ID from Walrus
  * @param {Uint8Array} datasetHash - Dataset hash (Poseidon hash)
  * @param {Ed25519Keypair} signer - Signer keypair
@@ -182,21 +183,38 @@ export function prepareVerifyingKeyForSui(vkeyJson) {
 export async function registerDatasetOnChain(
   client,
   packageId,
+  registryObjectId,
   blobId,
   datasetHash,
   signer
 ) {
-  return await callMoveFunction(
-    client,
-    packageId,
-    'DatasetRegistry',
-    'register_dataset',
-    [
-      new TextEncoder().encode(blobId),
-      Array.from(datasetHash),
+  const txb = new TransactionBlock();
+  
+  // Get Clock object (always at 0x6 on Sui)
+  const clock = txb.object('0x6');
+  
+  txb.moveCall({
+    target: `${packageId}::DatasetRegistry::register_dataset`,
+    arguments: [
+      txb.object(registryObjectId), // Registry shared object
+      txb.pure.string(blobId),
+      txb.pure.vector('u8', Array.from(datasetHash)),
+      clock, // Clock object
     ],
-    signer
-  );
+  });
+  
+  txb.setGasBudget(100000000);
+  
+  const result = await client.signAndExecuteTransactionBlock({
+    transactionBlock: txb,
+    signer,
+    options: {
+      showEffects: true,
+      showEvents: true,
+    },
+  });
+  
+  return result;
 }
 
 /**
@@ -212,9 +230,24 @@ export async function registerDatasetOnChain(
  * @param {Ed25519Keypair} signer - Signer keypair
  * @returns {Promise<Object>} Transaction result
  */
+/**
+ * Submit proof to Sui for verification
+ * @param {SuiClient} client - Sui client
+ * @param {string} packageId - ProofVerifier package ID
+ * @param {string} registryObjectId - Registry shared object ID
+ * @param {string} proofId - Unique proof ID
+ * @param {string} blobId - Blob ID
+ * @param {Uint8Array} publicOutput - Public output bytes
+ * @param {Object} proof - Proof object from snarkjs
+ * @param {Array} publicSignals - Public signals
+ * @param {string} circuitId - Circuit identifier
+ * @param {Ed25519Keypair} signer - Signer keypair
+ * @returns {Promise<Object>} Transaction result
+ */
 export async function submitProof(
   client,
   packageId,
+  registryObjectId,
   proofId,
   blobId,
   publicOutput,
@@ -225,20 +258,135 @@ export async function submitProof(
 ) {
   const proofFormatted = prepareProofForSui(proof);
   const publicInputsBytes = preparePublicInputsForSui(publicSignals);
-
-  return await callMoveFunction(
-    client,
-    packageId,
-    'ProofVerifier',
-    'verify_proof',
-    [
-      new TextEncoder().encode(proofId),
-      new TextEncoder().encode(blobId),
-      Array.from(publicOutput),
-      proofFormatted.proof_points_bytes,
-      Array.from(publicInputsBytes),
-      new TextEncoder().encode(circuitId),
+  
+  const txb = new TransactionBlock();
+  
+  // Get Clock object (always at 0x6 on Sui)
+  const clock = txb.object('0x6');
+  
+  txb.moveCall({
+    target: `${packageId}::ProofVerifier::verify_proof`,
+    arguments: [
+      txb.object(registryObjectId), // Registry shared object
+      txb.pure.string(proofId),
+      txb.pure.string(blobId),
+      txb.pure.vector('u8', Array.from(publicOutput)),
+      txb.pure.vector('u8', proofFormatted.proof_points_bytes),
+      txb.pure.vector('u8', Array.from(publicInputsBytes)),
+      txb.pure.string(circuitId),
+      clock, // Clock object
     ],
-    signer
-  );
+  });
+  
+  txb.setGasBudget(100000000);
+  
+  const result = await client.signAndExecuteTransactionBlock({
+    transactionBlock: txb,
+    signer,
+    options: {
+      showEffects: true,
+      showEvents: true,
+    },
+  });
+  
+  return result;
+}
+
+/**
+ * Query proof result from blockchain
+ * @param {SuiClient} client - Sui client
+ * @param {string} packageId - ProofVerifier package ID
+ * @param {string} registryObjectId - Registry shared object ID
+ * @param {string} proofId - Proof ID to query
+ * @returns {Promise<Object|null>} Proof result or null if not found
+ */
+export async function queryProofResult(
+  client,
+  packageId,
+  registryObjectId,
+  proofId
+) {
+  try {
+    const txb = new TransactionBlock();
+    
+    txb.moveCall({
+      target: `${packageId}::ProofVerifier::get_proof_result`,
+      arguments: [
+        txb.object(registryObjectId),
+        txb.pure.string(proofId),
+      ],
+    });
+    
+    // Use dry run to query without executing
+    const result = await client.dryRunTransactionBlock({
+      transactionBlock: txb,
+    });
+    
+    // Parse the result from the dry run
+    // The result will be in result.results[0].returnValues
+    if (result.results && result.results[0] && result.results[0].returnValues) {
+      const returnValue = result.results[0].returnValues[0];
+      if (returnValue && returnValue[0]) {
+        // Decode the return value (it's a BCS-encoded Option<ProofResult>)
+        // For now, return the raw bytes - in production you'd decode properly
+        return {
+          proof_id: proofId,
+          exists: returnValue[0].length > 0,
+          raw_data: returnValue[0],
+        };
+      }
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('Error querying proof result:', err);
+    throw err;
+  }
+}
+
+/**
+ * Query dataset record from blockchain
+ * @param {SuiClient} client - Sui client
+ * @param {string} packageId - DatasetRegistry package ID
+ * @param {string} registryObjectId - Registry shared object ID
+ * @param {string} blobId - Blob ID to query
+ * @returns {Promise<Object|null>} Dataset record or null if not found
+ */
+export async function queryDatasetRecord(
+  client,
+  packageId,
+  registryObjectId,
+  blobId
+) {
+  try {
+    const txb = new TransactionBlock();
+    
+    txb.moveCall({
+      target: `${packageId}::DatasetRegistry::get_dataset_hash`,
+      arguments: [
+        txb.object(registryObjectId),
+        txb.pure.string(blobId),
+      ],
+    });
+    
+    const result = await client.dryRunTransactionBlock({
+      transactionBlock: txb,
+    });
+    
+    if (result.results && result.results[0] && result.results[0].returnValues) {
+      const returnValue = result.results[0].returnValues[0];
+      if (returnValue && returnValue[0] && returnValue[0].length > 0) {
+        return {
+          blob_id: blobId,
+          dataset_hash: returnValue[0],
+          exists: true,
+        };
+      }
+    }
+    
+    return null;
+  } catch (err) {
+    console.error('Error querying dataset record:', err);
+    throw err;
+  }
 }

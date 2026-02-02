@@ -237,29 +237,59 @@ export default async function uploadDataset(req, res) {
     // Step 4: Register dataset hash on Sui blockchain
     const suiNetwork = process.env.SUI_NETWORK || 'devnet';
     const datasetRegistryPackageId = process.env.DATASET_REGISTRY_PACKAGE_ID;
+    const datasetRegistryObjectId = process.env.DATASET_REGISTRY_OBJECT_ID;
     
     let onChainTxHash = null;
-    if (datasetRegistryPackageId) {
+    if (datasetRegistryPackageId && datasetRegistryObjectId) {
       try {
         const client = getSuiClient(suiNetwork);
         
-        // Load signer from wallet or environment
-        // For now, we'll skip on-chain registration if no package ID is configured
-        // In production, you'd load the keypair from wallet
-        // const keypair = Ed25519Keypair.deriveKeypair(process.env.SUI_PRIVATE_KEY);
-        
-        // Uncomment when ready to register on-chain:
-        // const result = await registerDatasetOnChain(
-        //   client,
-        //   datasetRegistryPackageId,
-        //   blobId,
-        //   datasetHash,
-        //   keypair
-        // );
-        // onChainTxHash = result.digest;
+        // Load signer from environment
+        if (!process.env.SUI_PRIVATE_KEY) {
+          console.warn('[UPLOAD] SUI_PRIVATE_KEY not set, skipping on-chain registration');
+        } else {
+          // Parse private key from hex string
+          const privateKeyHex = process.env.SUI_PRIVATE_KEY.replace(/^0x/, '');
+          if (privateKeyHex.length !== 64) {
+            console.warn('[UPLOAD] Invalid SUI_PRIVATE_KEY format (expected 64 hex characters), skipping on-chain registration');
+          } else {
+            const privateKeyBytes = Uint8Array.from(
+              privateKeyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
+            );
+            const keypair = Ed25519Keypair.fromSecretKey(privateKeyBytes);
+            
+            console.log('[UPLOAD] Registering dataset on-chain...', {
+              packageId: datasetRegistryPackageId,
+              registryObjectId: datasetRegistryObjectId,
+              blobId,
+              network: suiNetwork
+            });
+            
+            const result = await registerDatasetOnChain(
+              client,
+              datasetRegistryPackageId,
+              datasetRegistryObjectId,
+              blobId,
+              datasetHash,
+              keypair
+            );
+            onChainTxHash = result.digest;
+            console.log('[UPLOAD] ✅ Dataset registered on-chain:', {
+              transactionDigest: onChainTxHash
+            });
+          }
+        }
       } catch (err) {
-        console.error('On-chain registration failed:', err);
-        // Continue even if on-chain registration fails
+        console.error('[UPLOAD] On-chain registration failed:', err);
+        console.error('[UPLOAD] Error details:', err.message);
+        // Continue even if on-chain registration fails - dataset is still uploaded to Walrus
+      }
+    } else {
+      if (!datasetRegistryPackageId) {
+        console.log('[UPLOAD] DATASET_REGISTRY_PACKAGE_ID not configured, skipping on-chain registration');
+      }
+      if (!datasetRegistryObjectId) {
+        console.log('[UPLOAD] DATASET_REGISTRY_OBJECT_ID not configured, skipping on-chain registration');
       }
     }
 
