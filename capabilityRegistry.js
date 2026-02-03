@@ -6,6 +6,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { signCapability } from './utils/crypto.mjs';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { fromB64 } from '@mysten/sui.js/utils';
 
 const DATA_DIR = path.resolve('./data');
 const CAPABILITY_FILE = path.join(DATA_DIR, 'capabilities.json');
@@ -21,18 +22,56 @@ if (!fs.existsSync(KEYS_DIR)) {
 
 // Load or generate issuer keypair
 function loadOrCreateIssuerKeypair() {
+  // #region agent log
+  fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:23',message:'loadOrCreateIssuerKeypair entry',data:{keyPath:path.join(KEYS_DIR, 'issuer_keypair.json')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+  // #endregion
   const keyPath = path.join(KEYS_DIR, 'issuer_keypair.json');
   
   if (fs.existsSync(keyPath)) {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:31',message:'Loading existing keypair',data:{keyPath},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     const keyData = JSON.parse(fs.readFileSync(keyPath, 'utf8'));
-    return Ed25519Keypair.fromSecretKey(keyData.secretKey);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:34',message:'Parsed keyData',data:{hasSecretKey:!!keyData.secretKey,secretKeyType:Array.isArray(keyData.secretKey)?'array':typeof keyData.secretKey,secretKeyLength:Array.isArray(keyData.secretKey)?keyData.secretKey.length:null},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    // Convert array to Uint8Array (fromSecretKey expects Uint8Array, not array)
+    const secretKeyBytes = keyData.secretKey instanceof Uint8Array 
+      ? keyData.secretKey 
+      : new Uint8Array(keyData.secretKey);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:37',message:'Converted to Uint8Array',data:{secretKeyBytesType:secretKeyBytes.constructor.name,secretKeyBytesLength:secretKeyBytes.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    return Ed25519Keypair.fromSecretKey(secretKeyBytes);
   } else {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:30',message:'Generating new keypair',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     // Generate new keypair
     const keypair = new Ed25519Keypair();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:32',message:'Keypair created, inspecting methods',data:{keypairType:typeof keypair,keypairConstructor:keypair.constructor.name,hasGetSecretKey:'getSecretKey' in keypair,hasExport:'export' in keypair,hasToSuiAddress:'toSuiAddress' in keypair,hasGetPublicKey:'getPublicKey' in keypair,allMethods:Object.getOwnPropertyNames(Object.getPrototypeOf(keypair)).filter(m=>typeof keypair[m]==='function')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:33',message:'Before export call',data:{hasExport:typeof keypair.export==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    // Use export() method to get the private key (base64 encoded 32-byte seed)
+    const exported = keypair.export();
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:36',message:'Exported keypair',data:{schema:exported.schema,privateKeyType:typeof exported.privateKey,privateKeyLength:exported.privateKey?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    // Convert base64 privateKey to bytes
+    const secretKeyBytes = fromB64(exported.privateKey);
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:39',message:'Converted privateKey to bytes',data:{secretKeyLength:secretKeyBytes.length},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     const keyData = {
-      secretKey: Array.from(keypair.getSecretKey()),
+      secretKey: Array.from(secretKeyBytes),
       publicKey: Array.from(keypair.getPublicKey().toRawBytes()),
     };
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/64946ba5-3ee8-44ee-8d85-8f1339f9fa3a',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'capabilityRegistry.js:52',message:'Saving keypair to disk',data:{secretKeyLength:keyData.secretKey.length,publicKeyLength:keyData.publicKey.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     fs.writeFileSync(keyPath, JSON.stringify(keyData, null, 2));
     return keypair;
   }

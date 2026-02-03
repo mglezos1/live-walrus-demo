@@ -201,7 +201,13 @@ export default async function uploadDataset(req, res) {
       });
     }
 
-    // Step 1: Encrypt dataset
+    // Step 1: Compute dataset hash (Poseidon) - hash the plaintext data first
+    console.log('[UPLOAD] Step 1: Computing dataset hash...');
+    const datasetHash = await hashDataset(records);
+    console.log('[UPLOAD] Dataset hash computed:', Buffer.from(datasetHash).toString('hex'));
+
+    // Step 2: Encrypt dataset
+    console.log('[UPLOAD] Step 2: Encrypting dataset...');
     const encryptionKey = generateEncryptionKey();
     const encrypted = encryptDataset(records, encryptionKey);
 
@@ -216,15 +222,15 @@ export default async function uploadDataset(req, res) {
       encrypted.iv
     ]);
     await fs.writeFile(tempEncryptedPath, encryptedBuffer);
-
-    // Step 2: Compute dataset hash (Poseidon)
-    const datasetHash = await hashDataset(records);
+    console.log('[UPLOAD] Encrypted dataset saved to:', tempEncryptedPath);
 
     // Step 3: Upload encrypted dataset to Walrus
+    console.log('[UPLOAD] Step 3: Uploading to Walrus...');
     const walletPath = process.env.SUI_WALLET_PATH || '~/.sui/sui_config/client.yaml';
     let blobId;
     try {
       blobId = await storeBlob(tempEncryptedPath, walletPath);
+      console.log('[UPLOAD] ✅ Uploaded to Walrus, blob ID:', blobId);
     } catch (err) {
       // Clean up temp file
       await fs.unlink(tempEncryptedPath).catch(() => {});
@@ -234,7 +240,8 @@ export default async function uploadDataset(req, res) {
     // Clean up temp file
     await fs.unlink(tempEncryptedPath).catch(() => {});
 
-    // Step 4: Register dataset hash on Sui blockchain
+    // Step 4: Register blob ID and dataset hash on Sui blockchain
+    console.log('[UPLOAD] Step 4: Registering blob ID and hash on Sui...');
     const suiNetwork = process.env.SUI_NETWORK || 'devnet';
     const datasetRegistryPackageId = process.env.DATASET_REGISTRY_PACKAGE_ID;
     const datasetRegistryObjectId = process.env.DATASET_REGISTRY_OBJECT_ID;
@@ -262,6 +269,7 @@ export default async function uploadDataset(req, res) {
               packageId: datasetRegistryPackageId,
               registryObjectId: datasetRegistryObjectId,
               blobId,
+              datasetHash: Buffer.from(datasetHash).toString('hex'),
               network: suiNetwork
             });
             
@@ -275,7 +283,9 @@ export default async function uploadDataset(req, res) {
             );
             onChainTxHash = result.digest;
             console.log('[UPLOAD] ✅ Dataset registered on-chain:', {
-              transactionDigest: onChainTxHash
+              transactionDigest: onChainTxHash,
+              blobId,
+              datasetHash: Buffer.from(datasetHash).toString('hex')
             });
           }
         }

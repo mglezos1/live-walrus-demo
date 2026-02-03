@@ -18,14 +18,57 @@ const execAsync = promisify(exec);
 export async function generateWitness(circuitWasm, inputJson, witnessPath) {
   // Find witness generator script (usually in circuit_js directory)
   const circuitDir = path.dirname(circuitWasm);
-  const witnessGen = path.join(circuitDir, 'generate_witness.cjs');
   
-  if (!await fs.access(witnessGen).then(() => true).catch(() => false)) {
-    throw new Error(`Witness generator not found: ${witnessGen}`);
+  // Try .js first (newer circom), then .cjs (older circom)
+  let witnessGen = path.join(circuitDir, 'generate_witness.js');
+  let exists = await fs.access(witnessGen).then(() => true).catch(() => false);
+  
+  if (!exists) {
+    witnessGen = path.join(circuitDir, 'generate_witness.cjs');
+    exists = await fs.access(witnessGen).then(() => true).catch(() => false);
+  }
+  
+  if (!exists) {
+    throw new Error(`Witness generator not found: ${path.join(circuitDir, 'generate_witness.js')} or ${path.join(circuitDir, 'generate_witness.cjs')}`);
   }
 
-  const cmd = `node ${witnessGen} ${circuitWasm} ${inputJson} ${witnessPath}`;
-  await execAsync(cmd);
+  // If it's a .js file, circom generates it with require() (CommonJS)
+  // but our project uses ES modules. We need to copy both generate_witness.js
+  // and witness_calculator.js to .cjs versions so they can use require()
+  const isJS = witnessGen.endsWith('.js');
+  
+  if (isJS) {
+    // Create .cjs copies of both files
+    const cjsWitnessGen = witnessGen.replace('.js', '.cjs');
+    const witnessCalcJs = path.join(circuitDir, 'witness_calculator.js');
+    const witnessCalcCjs = path.join(circuitDir, 'witness_calculator.cjs');
+    
+    // Copy generate_witness.js to .cjs
+    const witnessGenContent = await fs.readFile(witnessGen, 'utf8');
+    // Update the require path to use .cjs version
+    const updatedContent = witnessGenContent.replace(
+      /require\(["']\.\/witness_calculator\.js["']\)/g,
+      'require("./witness_calculator.cjs")'
+    );
+    await fs.writeFile(cjsWitnessGen, updatedContent);
+    
+    // Copy witness_calculator.js to .cjs if it exists
+    try {
+      const witnessCalcContent = await fs.readFile(witnessCalcJs, 'utf8');
+      await fs.writeFile(witnessCalcCjs, witnessCalcContent);
+    } catch (err) {
+      // witness_calculator.js might not exist, that's okay
+      console.warn(`[PROOF] witness_calculator.js not found, skipping copy: ${err.message}`);
+    }
+    
+    // Run the .cjs version
+    const cmd = `node ${cjsWitnessGen} ${circuitWasm} ${inputJson} ${witnessPath}`;
+    await execAsync(cmd);
+  } else {
+    // Already .cjs, just run it
+    const cmd = `node ${witnessGen} ${circuitWasm} ${inputJson} ${witnessPath}`;
+    await execAsync(cmd);
+  }
 }
 
 /**

@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+}
+
+@layer components {
+  .gradient-owner {
+    @apply bg-gradient-to-br from-owner-primary to-owner-secondary;
+  }
+  
+  .gradient-researcher {
+    @apply bg-gradient-to-br from-researcher-primary to-researcher-secondary;
+  }
+  
+  .gradient-verifier {
+    @apply bg-gradient-to-br from-verifier-primary to-verifier-secondary;
+  }
+}

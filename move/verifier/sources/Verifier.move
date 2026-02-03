@@ -69,10 +69,9 @@ module verifier::Verifier {
         
         if (option::is_some(&proof_result_opt)) {
             let proof_result = option::extract(&mut proof_result_opt);
-            let blob_id_string = string::utf8(blob_id);
             
-            // Verify blob_id matches
-            if (proof_result.blob_id == blob_id_string) {
+            // Verify blob_id matches using helper function
+            if (ProofVerifier::matches_blob_id(&proof_result, blob_id)) {
                 option::some(proof_result)
             } else {
                 option::none()

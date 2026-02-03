@@ -74,12 +74,12 @@ const PROOF_TYPES = {
         const { conditions, logic_op } = queryParams;
         const logicOp = logic_op || 'AND';
         
+        // Log query structure only (no sensitive data)
         console.log('[PROOF-GEN] Multi-condition query detected:', {
           conditionCount: conditions.length,
           logicOp,
-          conditions: conditions.map(c => `${c.field} ${c.operator} ${c.value}`),
-          datasetSize: dataset.length,
-          firstRecordKeys: dataset.length > 0 ? Object.keys(dataset[0]) : []
+          fields: conditions.map(c => c.field), // Only field names, not values
+          datasetSize: dataset.length
         });
         
         // Map dataset to records (0 or 1 for match) based on multiple conditions
@@ -93,6 +93,7 @@ const PROOF_TYPES = {
             
             // Check if field value exists
             if (fieldValue === null || fieldValue === undefined) {
+              // Only log field name, not value
               console.warn(`[PROOF-GEN] Record ${recordIndex}, Condition ${condIndex}: Field "${field}" is null/undefined`);
               return 0;
             }
@@ -111,7 +112,7 @@ const PROOF_TYPES = {
             }
             
             const result = matches ? 1 : 0;
-            console.log(`[PROOF-GEN] Record ${recordIndex}, Condition ${condIndex}: ${field} ${operator} ${normalizedValue} | fieldValue=${fieldValue} (type: ${typeof fieldValue}) -> ${result ? 'MATCH' : 'NO MATCH'}`);
+            // Don't log field values - only match result
             return result;
           });
           
@@ -126,9 +127,7 @@ const PROOF_TYPES = {
           }
           
           const finalResult = finalMatch ? 1 : 0;
-          if (finalResult === 1) {
-            console.log(`[PROOF-GEN] ✅ Record ${recordIndex} MATCHES all conditions (${logicOp}):`, record);
-          }
+          // Don't log patient records - privacy violation
           return finalResult;
         });
         
@@ -146,9 +145,9 @@ const PROOF_TYPES = {
         // Single condition mode (backward compatibility)
         const { field, condition, value } = queryParams;
         
-        console.log('[PROOF-GEN] Single condition query:', { field, condition, value });
+        // Log query structure only (no sensitive values)
+        console.log('[PROOF-GEN] Single condition query:', { field, condition });
         console.log('[PROOF-GEN] Dataset size:', dataset.length);
-        console.log('[PROOF-GEN] First record keys:', dataset.length > 0 ? Object.keys(dataset[0]) : []);
         
         // Map dataset to records (0 or 1 for match)
         const records = dataset.map((record, recordIndex) => {
@@ -173,9 +172,7 @@ const PROOF_TYPES = {
           }
           
           const result = matches ? 1 : 0;
-          if (result === 1) {
-            console.log(`[PROOF-GEN] ✅ Record ${recordIndex} MATCHES: ${field} ${condition} ${normalizedValue} | fieldValue=${fieldValue}`);
-          }
+          // Don't log field values - privacy violation
           return result;
         });
         
@@ -432,7 +429,8 @@ export async function generateProofController(req, res) {
     const proofId = `proof_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Return proof result (matching frontend type)
-    res.json({
+    const response = {
+      success: true,
       proof_id: proofId,
       blob_id,
       proof: {
@@ -442,7 +440,16 @@ export async function generateProofController(req, res) {
       },
       public_signals: publicSignals,
       public_output: publicSignals[0]?.toString() || publicSignals[0], // First public signal is usually the result
+      count: publicSignals[0]?.toString() || publicSignals[0], // For compatibility
+    };
+    
+    console.log('[PROOF-GEN] ✅ Proof generated successfully:', {
+      proof_id: proofId,
+      blob_id,
+      public_output: response.public_output,
     });
+    
+    res.json(response);
 
   } catch (err) {
     console.error('Generate proof error:', err);

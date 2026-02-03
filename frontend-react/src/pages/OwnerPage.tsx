@@ -12,6 +12,7 @@ import { useDatasets } from '../hooks/useDatasets';
 import { useCapabilities } from '../hooks/useCapabilities';
 import { motion } from 'framer-motion';
 import { Database, Upload, Key, Plus, X } from 'lucide-react';
+import './OwnerPage.css';
 
 interface Condition {
   field: string;
@@ -145,10 +146,22 @@ export function OwnerPage() {
       }
     }
 
+    // Map frontend query types to backend query types
+    const mapQueryType = (frontendType: string): string => {
+      const mapping: Record<string, string> = {
+        'count_aggregate': 'aggregate',
+        'sum_aggregate': 'aggregate',
+        'range_query': 'range',
+        'condition_query': 'condition',
+        'custom': 'custom',
+      };
+      return mapping[frontendType] || frontendType;
+    };
+
     try {
       const result = await issueCapability({
         dataset_id_hash: capabilityForm.dataset_id_hash,
-        query_type: capabilityForm.query_type,
+        query_type: mapQueryType(capabilityForm.query_type),
         query_params: capabilityForm.query_params,
         expires_at: capabilityForm.expires_at ? parseInt(capabilityForm.expires_at) : undefined,
       });
@@ -569,7 +582,7 @@ export function OwnerPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-lg shadow-lg p-8"
+          className="bg-white rounded-lg shadow-lg p-8 max-w-5xl mx-auto"
         >
           <div className="flex items-center gap-3 mb-8">
             <Database className="w-8 h-8 text-owner-primary" />

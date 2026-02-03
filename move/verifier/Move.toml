@@ -2,7 +2,10 @@
 name = "verifier"
 version = "1.0.0"
 
+[addresses]
+verifier = "0x0"
+
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "main" }
-MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "main" }
-ProofVerifier = { local = "../proof_verifier" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "49d95e90e36e" }
+MoveStdlib = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/move-stdlib", rev = "49d95e90e36e" }
+proof_verifier = { local = "../proof_verifier" }

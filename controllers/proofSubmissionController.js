@@ -1,8 +1,16 @@
 // controllers/proofSubmissionController.js
 // Proof submission service to Sui blockchain
 
-import { getSuiClient, submitProof, prepareProofForSui, preparePublicInputsForSui } from '../utils/sui.mjs';
+import { getSuiClient, submitProof, submitProofWithKey, prepareProofForSui, preparePublicInputsForSui } from '../utils/sui.mjs';
 import { Ed25519Keypair } from '@mysten/sui.js/keypairs/ed25519';
+import { convertVkeyToSuiBytes } from '../utils/vkey-converter.mjs';
+import { convertProofToSuiBytes } from '../utils/proof-converter.mjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Submit proof to Sui blockchain for on-chain verification
@@ -99,8 +107,29 @@ export async function submitProofController(req, res) {
       });
     }
 
-    // Format proof for Sui
-    const proofFormatted = prepareProofForSui(proof);
+    // Convert proof using Rust converter (Arkworks format)
+    // First, save proof to temp file for Rust converter
+    const tmpProofPath = `/tmp/proof_${Date.now()}.json`;
+    fs.writeFileSync(tmpProofPath, JSON.stringify(proof, null, 2));
+    
+    let proofFormatted;
+    try {
+      const proofBytes = await convertProofToSuiBytes(tmpProofPath);
+      proofFormatted = { proof_points_bytes: Array.from(proofBytes) };
+      console.log(`[PROOF-SUBMIT] Converted proof using Rust converter: ${proofBytes.length} bytes`);
+    } catch (err) {
+      console.warn(`[PROOF-SUBMIT] Rust converter failed, falling back to JS converter: ${err.message}`);
+      // Fall back to JavaScript converter
+      proofFormatted = prepareProofForSui(proof);
+    } finally {
+      // Clean up temp file
+      try {
+        fs.unlinkSync(tmpProofPath);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+    
     const publicInputsBytes = preparePublicInputsForSui(public_signals);
 
     // Convert public output to bytes
@@ -109,6 +138,8 @@ export async function submitProofController(req, res) {
     );
 
     // Submit proof to blockchain
+    // Try using verify_proof_with_key first (prepares key on-the-fly)
+    // This avoids the need to register verifying keys beforehand
     let transactionResult;
     try {
       console.log('[PROOF-SUBMIT] Submitting proof to blockchain...', {
@@ -119,18 +150,59 @@ export async function submitProofController(req, res) {
         circuitId: circuit_id
       });
       
-      transactionResult = await submitProof(
-        client,
-        proofVerifierPackageId,
-        proofVerifierRegistryObjectId,
-        proof_id,
-        blob_id,
-        Array.from(publicOutputBytes),
-        proof,
-        public_signals,
-        circuit_id,
-        signer
-      );
+      // Load verification key for the circuit
+      const circuitsDir = path.join(__dirname, '../circuits');
+      const vkeyPath = path.join(circuitsDir, `${circuit_id}_vkey.json`);
+      
+      if (!fs.existsSync(vkeyPath)) {
+        console.warn(`[PROOF-SUBMIT] Verification key not found at ${vkeyPath}, trying registered key approach...`);
+        // Fall back to registered key approach
+        transactionResult = await submitProof(
+          client,
+          proofVerifierPackageId,
+          proofVerifierRegistryObjectId,
+          proof_id,
+          blob_id,
+          Array.from(publicOutputBytes),
+          proof,
+          public_signals,
+          circuit_id,
+          signer
+        );
+            } else {
+              // Load and convert verification key using Rust converter
+              // Use JSON file (ark-circom/.zkey support is disabled due to compiler issues)
+              const circuitsDir = path.join(__dirname, '../circuits');
+              const vkeyJsonPath = path.join(circuitsDir, `${circuit_id}_vkey.json`);
+              
+              if (!fs.existsSync(vkeyJsonPath)) {
+                console.error(`[PROOF-SUBMIT] Verification key not found: ${vkeyJsonPath}`);
+                return res.status(500).json({
+                  error: 'Verification key not found',
+                  details: `Verification key file not found: ${vkeyJsonPath}`,
+                  suggestion: 'Please ensure the verification key JSON file exists for this circuit'
+                });
+              }
+              
+              console.log(`[PROOF-SUBMIT] Loading verification key from ${vkeyJsonPath}...`);
+              const verifyingKeyBytes = await convertVkeyToSuiBytes(vkeyJsonPath);
+        
+        console.log(`[PROOF-SUBMIT] Using verify_proof_with_key (on-the-fly key preparation)...`);
+        console.log(`[PROOF-SUBMIT] Verifying key size: ${verifyingKeyBytes.length} bytes`);
+        transactionResult = await submitProofWithKey(
+          client,
+          proofVerifierPackageId,
+          proofVerifierRegistryObjectId,
+          proof_id,
+          blob_id,
+          Array.from(publicOutputBytes),
+          proofFormatted, // Pass already-formatted proof
+          public_signals,
+          circuit_id,
+          verifyingKeyBytes,
+          signer
+        );
+      }
       
       console.log('[PROOF-SUBMIT] ✅ Proof submitted successfully:', {
         transactionDigest: transactionResult.digest

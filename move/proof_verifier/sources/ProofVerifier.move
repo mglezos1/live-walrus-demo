@@ -16,7 +16,7 @@ module proof_verifier::ProofVerifier {
     const E_INVALID_INPUT: u64 = 3;
 
     /// Proof result stored on-chain
-    struct ProofResult has store {
+    struct ProofResult has store, drop {
         proof_id: String,
         blob_id: String,
         public_output: vector<u8>,
@@ -52,8 +52,18 @@ module proof_verifier::ProofVerifier {
         registered_by: address,
     }
 
-    /// Initialize the registry
+    /// Initialize the registry (one-time witness pattern)
     fun init(ctx: &mut TxContext) {
+        let registry = Registry {
+            id: object::new(ctx),
+            proofs: table::new(ctx),
+            verifying_keys: table::new(ctx),
+        };
+        transfer::share_object(registry);
+    }
+
+    /// Create and initialize a new registry (entry function)
+    public entry fun create_registry(ctx: &mut TxContext) {
         let registry = Registry {
             id: object::new(ctx),
             proofs: table::new(ctx),
@@ -93,6 +103,69 @@ module proof_verifier::ProofVerifier {
     }
 
     /// Verify a Groth16 proof and store the result
+    /// This version accepts verifying_key_bytes to prepare on-the-fly
+    public entry fun verify_proof_with_key(
+        registry: &mut Registry,
+        proof_id: vector<u8>,
+        blob_id: vector<u8>,
+        public_output: vector<u8>,
+        proof_points_bytes: vector<u8>,
+        public_inputs_bytes: vector<u8>,
+        circuit_id: vector<u8>,
+        verifying_key_bytes: vector<u8>,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let proof_id_string = string::utf8(proof_id);
+        let blob_id_string = string::utf8(blob_id);
+        let circuit_id_string = string::utf8(circuit_id);
+
+        // Check if proof already exists
+        assert!(!table::contains(&registry.proofs, proof_id_string), E_PROOF_ALREADY_EXISTS);
+
+        // Prepare verifying key on-the-fly using BN254 curve
+        let curve = bn254();
+        let prepared_vk = prepare_verifying_key(&curve, &verifying_key_bytes);
+
+        // Prepare proof inputs
+        let public_proof_inputs = groth16::public_proof_inputs_from_bytes(public_inputs_bytes);
+        let proof_points = groth16::proof_points_from_bytes(proof_points_bytes);
+
+        // Verify proof using BN254 curve
+        let is_valid = verify_groth16_proof(
+            &curve,
+            &prepared_vk,
+            &public_proof_inputs,
+            &proof_points,
+        );
+
+        assert!(is_valid, E_PROOF_INVALID);
+
+        // Store proof result
+        let sender = tx_context::sender(ctx);
+        let timestamp = clock::timestamp_ms(clock);
+
+        let result = ProofResult {
+            proof_id: proof_id_string,
+            blob_id: blob_id_string,
+            public_output,
+            verified_at: timestamp,
+            verifier_address: sender,
+            circuit_id: circuit_id_string,
+        };
+
+        table::add(&mut registry.proofs, proof_id_string, result);
+
+        // Emit event
+        event::emit(ProofVerified {
+            proof_id: proof_id_string,
+            blob_id: blob_id_string,
+            verifier_address: sender,
+            timestamp,
+        });
+    }
+
+    /// Verify a Groth16 proof and store the result (original version with registered key)
     public entry fun verify_proof(
         registry: &mut Registry,
         proof_id: vector<u8>,
@@ -184,5 +257,16 @@ module proof_verifier::ProofVerifier {
     ): bool {
         let proof_id_string = string::utf8(proof_id);
         table::contains(&registry.proofs, proof_id_string)
+    }
+
+    /// Get blob_id from proof result (helper for external modules)
+    public fun get_blob_id(result: &ProofResult): String {
+        result.blob_id
+    }
+
+    /// Check if proof result matches blob_id
+    public fun matches_blob_id(result: &ProofResult, blob_id: vector<u8>): bool {
+        let blob_id_string = string::utf8(blob_id);
+        result.blob_id == blob_id_string
     }
 }
