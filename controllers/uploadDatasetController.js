@@ -224,20 +224,30 @@ export default async function uploadDataset(req, res) {
     await fs.writeFile(tempEncryptedPath, encryptedBuffer);
     console.log('[UPLOAD] Encrypted dataset saved to:', tempEncryptedPath);
 
-    // Step 3: Upload encrypted dataset to Walrus
-    console.log('[UPLOAD] Step 3: Uploading to Walrus...');
+    // Step 3: Upload encrypted dataset to Walrus (requires `walrus` CLI + Sui wallet on the host)
+    console.log('[UPLOAD] Step 3: Walrus blob store...');
     const walletPath = process.env.SUI_WALLET_PATH || '~/.sui/sui_config/client.yaml';
     let blobId;
+    const skipWalrus =
+      process.env.DEMO_SKIP_WALRUS === '1' ||
+      process.env.DEMO_SKIP_WALRUS === 'true';
+
     try {
-      blobId = await storeBlob(tempEncryptedPath, walletPath);
-      console.log('[UPLOAD] ✅ Uploaded to Walrus, blob ID:', blobId);
+      if (skipWalrus) {
+        blobId = `demo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+        console.warn(
+          '[UPLOAD] DEMO_SKIP_WALRUS: skipping walrus CLI (demo / cloud). Synthetic blobId:',
+          blobId
+        );
+      } else {
+        blobId = await storeBlob(tempEncryptedPath, walletPath);
+        console.log('[UPLOAD] ✅ Uploaded to Walrus, blob ID:', blobId);
+      }
     } catch (err) {
-      // Clean up temp file
       await fs.unlink(tempEncryptedPath).catch(() => {});
       throw new Error(`Walrus upload failed: ${err.message}`);
     }
 
-    // Clean up temp file
     await fs.unlink(tempEncryptedPath).catch(() => {});
 
     // Step 4: Register blob ID and dataset hash on Sui blockchain
