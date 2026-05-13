@@ -4,6 +4,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { OwnerPage } from './pages/OwnerPage';
 import { ResearcherPage } from './pages/ResearcherPage';
 import { VerifierPage } from './pages/VerifierPage';
+import { UnauthorizedDataPage } from './pages/UnauthorizedDataPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -15,6 +16,7 @@ function AnimatedRoutes() {
         <Route path="/owner" element={<OwnerPage />} />
         <Route path="/researcher" element={<ResearcherPage />} />
         <Route path="/verifier" element={<VerifierPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedDataPage />} />
       </Routes>
     </AnimatePresence>
   );

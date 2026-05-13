@@ -3,7 +3,7 @@ import { Layout } from '../components/layout/Layout';
 import { Container } from '../components/layout/Container';
 import { Card } from '../components/ui/Card';
 import { motion } from 'framer-motion';
-import { Database, FlaskConical, ShieldCheck, Home, ArrowRight } from 'lucide-react';
+import { Database, FlaskConical, ShieldCheck, Home, ArrowRight, Lock } from 'lucide-react';
 
 const portalCards = [
   {
@@ -30,6 +30,14 @@ const portalCards = [
     gradient: 'from-verifier-primary to-verifier-secondary',
     color: 'text-verifier-primary',
   },
+  {
+    title: 'Demo: Encrypted Data',
+    description: 'See what downloaded data looks like without authorization',
+    path: '/unauthorized',
+    icon: Lock,
+    gradient: 'from-gray-600 to-gray-800',
+    color: 'text-gray-700',
+  },
 ];
 
 export function DashboardPage() {
@@ -53,7 +61,7 @@ export function DashboardPage() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {portalCards.map((portal, index) => {
             const Icon = portal.icon;
             return (

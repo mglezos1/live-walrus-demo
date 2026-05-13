@@ -52,8 +52,9 @@ export function OwnerPage() {
 
     try {
       const result = await uploadDataset(file);
+      const walrusUrl = result.blobId ? `https://walruscan.com/testnet/blob/${result.blobId}` : '';
       setUploadResult({
-        message: `✅ Dataset uploaded successfully!\n\nBlob ID: ${result.blobId}\nDataset Hash: ${result.datasetHash}\nRecord Count: ${result.recordCount}`,
+        message: `✅ Dataset uploaded successfully!\n\nBlob ID: ${result.blobId}\n${walrusUrl ? `View on Walrus Testnet: ${walrusUrl}\n` : ''}Dataset Hash: ${result.datasetHash}\nRecord Count: ${result.recordCount}`,
         type: 'success',
       });
       if (fileInputRef.current) {

@@ -119,8 +119,11 @@ export function ResearcherPage() {
       const data = await response.json();
       
       if (data.success) {
+        const transactionDigest = data.transaction_digest || data.transactionDigest || data.digest;
+        const explorerUrl = transactionDigest ? `https://suiscan.xyz/testnet/tx/${transactionDigest}` : '';
+        
         setResult({
-          message: `✅ Proof submitted to blockchain!\n\nTransaction Digest: ${data.transactionDigest || data.digest}\nProof ID: ${data.proof_id}\n\nYou can now verify this proof in the Verifier portal.`,
+          message: `✅ Proof submitted to blockchain!\n\nTransaction Digest: ${transactionDigest || 'Loading...'}\n${explorerUrl ? `View on Sui Explorer: ${explorerUrl}\n` : ''}Proof ID: ${data.proof_id}\n\nYou can now verify this proof in the Verifier portal.`,
           type: 'success',
         });
         setGeneratedProof(null); // Clear after successful submission

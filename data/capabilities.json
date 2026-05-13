@@ -183,5 +183,485 @@
     "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
     "issued_at": 1770097302840,
     "signature": "9316ba36cd5ef1723545f2003f09e92bfbd295862157bdf0c9f0783fd2cb02d7a459b94a6b0f8b938dba84bca05aa080c4daa968b363d61314c52803b73e1b47"
+  },
+  {
+    "id": "cap_50926e715997cb2a",
+    "dataset_id_hash": "261f6653816858d039a1fc5939855055d78a1610b1e847423bba938821e4bc88",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "pregnancy",
+          "operator": "==",
+          "value": 1
+        },
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1770733236623,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1770646836624,
+    "signature": "f2dd0e77f14725a6aa6077a632bd945bce308bbb6bf0af90edf65b64ca1f40e2004913d7034e21e6042264080be584838db4f2f48a2f6ce8807d31f3448c859e"
+  },
+  {
+    "id": "cap_f8150c8d4686d79b",
+    "dataset_id_hash": "261f6653816858d039a1fc5939855055d78a1610b1e847423bba938821e4bc88",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        },
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1770770837250,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1770684437250,
+    "signature": "10a81baf4f49f873c73b628e8ebfcda3039c141f29716818e50cddb6a0862ae0d1ca381e01155c24643e1b519f1628a1d2b737db6bfbfde96e17a1e99af93c1f"
+  },
+  {
+    "id": "cap_eff40a01fc847c7c",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        },
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771991147273,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771904747273,
+    "signature": "ec866269c0eb479c8242246eed4209ecdf6bd95c8110feb4f0af717f3d525f78158afc8b1ceefe4e9e19a08f498598ebdf04376b8cb8e901cbbe6c07746329e7"
+  },
+  {
+    "id": "cap_0c988f49ce01596f",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": ">",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771992630179,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771906230179,
+    "signature": "8bdfadaa7d187a23531698737345bb2a5e1c9c40ad6db1fd6c25d15997e059d97658cfa1346eb7875a89a7c275d7627bd9e19cd0dd53607281278dd529a390ff"
+  },
+  {
+    "id": "cap_c5aab52f4d1fe79c",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        },
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771992821571,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771906421571,
+    "signature": "f7244be94f13b9b7ff4b3e82588a1348460d0d59d11662f896043c3677500d093e984a76f1e97ea10a43961d0f28d72238a839f50481c8c0652d342599c9797b"
+  },
+  {
+    "id": "cap_47b411ccec75d6bd",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771993890127,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771907490127,
+    "signature": "2ec8be1b699d49390086fad44e80ca15c6f8699db7cfbfffd4413dd3076b1035583d4698899d95a70177b670523b3b6d6247beae8c0d84f67179a119fc36d175"
+  },
+  {
+    "id": "cap_65e8e04b9e989043",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771994808601,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771908408602,
+    "signature": "89915c89e4e0d675b3026d2e027d27f9b979ffa2b021d7a2d22f6fb36398454456c9490c7ad2e485b02bf740ae9a183199ece2ca974f8e85841440e26453b524"
+  },
+  {
+    "id": "cap_fa2eaa373395b5ec",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771995633942,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771909233942,
+    "signature": "2b9232b7e359eb30661b223eae7ca5bd34f926a3e01445fada662c8be11cfbd1e68589f120a61fe8f014d1c1de35b09b6d840800f0fe286e0799051780b4610a"
+  },
+  {
+    "id": "cap_45a203aa20c24734",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 18
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771995891633,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771909491633,
+    "signature": "29542cd12fac8ec8101ffc8434487553b2075398d3746654cc034df4a730429b34fab741abe205b0afa7669d617c26d7c23ba79393296038033440171979de16"
+  },
+  {
+    "id": "cap_ce2c40da9808b556",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771996246706,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771909846706,
+    "signature": "b5fc3cf301f23b127339db595052e3825efc0148ba6339018ad6319af2e1111498901cb0aa66bbf1957795a49e004c7770074b881138dc4d4463449e42e9c338"
+  },
+  {
+    "id": "cap_6c7ddf737e97568c",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771997208791,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771910808791,
+    "signature": "cb48d148f3554ac85832123f811f95b69632ba276a74d0f7c6f4804c61636be4edcfa2a3c97ff8b41f2279741de64b4f4c3143b20844ca3b0d3403e5f50681bc"
+  },
+  {
+    "id": "cap_be0a4b12b2820dbf",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1771999645524,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771913245524,
+    "signature": "dbe72eb21b0a31d974ae99c2a17ca4651ecf021ab725a896d9ef9b176ccb2688664a60f03e2e96827592ac9c2137f65a8528c2a921a62643ca3d87ee142de53f"
+  },
+  {
+    "id": "cap_709814ba07584ac0",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772000000854,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771913600854,
+    "signature": "6d23f47b7543adbd5906edfb93cf9c1cdadd879ae86e9777bd62f86e01c838db340fc7fdb77a2b76ea6ec34be7d8c769cc4f5736fd5d3602d556c1ea543220b9"
+  },
+  {
+    "id": "cap_2492d6633580c994",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772000516181,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771914116181,
+    "signature": "c92324b11ca45eb4d28e819e9b493afa18248983d02ad101f1e7fb39b03077a881e1ac6373ee02eab47eadc3312fb9a8cc66e8aa7e9eac2afe1ac7e01e2938d3"
+  },
+  {
+    "id": "cap_bf144bf73802a002",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772000882997,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771914482997,
+    "signature": "b26fd667b01fdeaabf69e9188fb6fb7dc39c5f2cb1c468df40eccff6b385cbf3e56652448e12264cd2fd18b4cc6236150fb34781e741b9974a3e4de589604397"
+  },
+  {
+    "id": "cap_f5200ae8661ec83c",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772063694136,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771977294136,
+    "signature": "a5b61f8534352d6dd42c717c14d228d8328dad88da0724e57603eb3c7879842da53335d4344bddbe24cd6acc158ff83669c673631110e12c9cbb13b578157246"
+  },
+  {
+    "id": "cap_b3d7a11a90c4b56c",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772064120149,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771977720149,
+    "signature": "ac43be7734e5bc85114d61e42becb4ab0bff5470bc0027e9d95c15e56ff4a751bbef69629d44393fb7ce0d000f1d1cf24c61cb87f75b9bf7a18f4e578d3f940b"
+  },
+  {
+    "id": "cap_94d44df0064bc839",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772067169650,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771980769650,
+    "signature": "05c310de26e1f5987ef519bbd883be0c6a201ad062f3b04e648b7e4d627166e1bfa84a1aad3f030fca8c039177a2ca6f7e0aeaa74ffc58b8d5bd202179471adc"
+  },
+  {
+    "id": "cap_fa5d83d828a243a4",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772067990874,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771981590874,
+    "signature": "85f2a47c5078f80c7dcf03f2d7de376b377aa0499809738f463da7a79a8540d43a9fa85170598ed0180a866e3ece533c6ada482278923380969b87e740340c56"
+  },
+  {
+    "id": "cap_4db421861b071bff",
+    "dataset_id_hash": "2278c517c773e06e2a04c8acb8ba371fb979238460039f1fa97c630450e9a9d6",
+    "query_type": "aggregate",
+    "query_params": {
+      "conditions": [
+        {
+          "field": "age",
+          "operator": "<",
+          "value": 18
+        },
+        {
+          "field": "pregnant",
+          "operator": "==",
+          "value": 1
+        }
+      ],
+      "logic_op": "AND"
+    },
+    "expires_at": 1772068176580,
+    "issuer": "6ab4542fffa5cd7de6a25fe3739d7650fa0997111e5ef67e0b2907bc89776617",
+    "issued_at": 1771981776580,
+    "signature": "1d5704da28807ebedfd606600b507934cac8cebbac3fcb23ce885d5fa0346882502d2f36980d291ef61a107af6cd104dec0486f8bb94ea35d60382bc06497a95"
   }
 ]

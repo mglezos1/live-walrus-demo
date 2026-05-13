@@ -1,12 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Database, FlaskConical, ShieldCheck, Home } from 'lucide-react';
+import { Database, FlaskConical, ShieldCheck, Home, Lock } from 'lucide-react';
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: Home },
   { path: '/owner', label: 'Data Owner', icon: Database },
   { path: '/researcher', label: 'Researcher', icon: FlaskConical },
   { path: '/verifier', label: 'Verifier', icon: ShieldCheck },
+  { path: '/unauthorized', label: 'Demo: Encrypted Data', icon: Lock },
 ];
 
 export function Navigation() {
