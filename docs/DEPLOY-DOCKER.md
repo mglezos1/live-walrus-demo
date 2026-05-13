@@ -1,3 +1,5 @@
+> **Fast path:** [SIMPLE-VPS.md](./SIMPLE-VPS.md) (copy-paste VPS + optional Cloudflare HTTPS for Vercel).
+
 # Docker testnet backend (Walrus + Sui)
 
 This stack runs the same Node API as locally, plus **sui** and **walrus** CLIs installed via [suiup](https://github.com/MystenLabs/suiup) inside the image.

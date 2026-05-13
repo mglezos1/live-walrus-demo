@@ -40,6 +40,9 @@ This system enables:
 
 **Hosted testnet (Docker + Walrus/Sui on a VPS):** see [docs/DEPLOY-DOCKER.md](docs/DEPLOY-DOCKER.md).
 
+
+**Simplest hosted Walrus (real, not demo):** [docs/SIMPLE-VPS.md](docs/SIMPLE-VPS.md)
+
 ### Prerequisites
 
 - Node.js 20+
