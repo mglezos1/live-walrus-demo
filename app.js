@@ -55,31 +55,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --------------------
-// FRONTEND
+// FRONTEND (development only — old static UI)
 // --------------------
-// In development, serve old frontend for reference
-// In production, serve React app from frontend-react/dist
-if (process.env.NODE_ENV === 'production') {
-  // Serve React app static files
-  app.use(express.static(path.join(__dirname, "frontend-react", "dist")));
-  
-  // Serve React app for all non-API routes
-  app.get("*", (req, res) => {
-    // Don't serve React app for API routes
-    if (req.path.startsWith("/datasets") || 
-        req.path.startsWith("/capabilities") || 
-        req.path.startsWith("/proofs") || 
-        req.path.startsWith("/verifier") ||
-        req.path.startsWith("/health")) {
-      return res.status(404).json({ error: "Not found" });
-    }
-    res.sendFile(path.join(__dirname, "frontend-react", "dist", "index.html"));
-  });
-} else {
-  // Development: serve old frontend for reference
+if (process.env.NODE_ENV !== "production") {
   app.use("/frontend", express.static(path.join(__dirname, "frontend")));
   app.use("/", express.static(path.join(__dirname, "frontend")));
-  
+
   app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "frontend", "index.html"));
   });
@@ -201,6 +182,19 @@ app.get("/proofs/:proofId/status", getProofStatusController);
 
 // Verifier routes
 app.use("/verifier", verifierRoutes);
+
+
+// --------------------
+// FRONTEND (production — Vite build; after all API routes)
+// --------------------
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "frontend-react", "dist")));
+  app.get("*", (req, res, next) => {
+    res.sendFile(path.join(__dirname, "frontend-react", "dist", "index.html"), (err) => {
+      if (err) next(err);
+    });
+  });
+}
 
 // --------------------
 // START SERVER

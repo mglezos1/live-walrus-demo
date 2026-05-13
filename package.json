@@ -7,7 +7,7 @@
     "start": "node app.js",
     "dev": "node app.js",
     "dev:frontend": "cd frontend-react && npm run dev",
-    "build:frontend": "cd frontend-react && npm install && npm run build",
+    "build:frontend": "cd frontend-react && npm install --include=dev && npm run build",
     "build:circuits": "bash scripts/build-circuits.sh",
     "deploy:contracts": "bash scripts/deploy-contracts.sh",
     "deploy": "bash scripts/deploy.sh",
