@@ -50,8 +50,40 @@ const upload = multer({
 // --------------------
 // MIDDLEWARE
 // --------------------
-app.use(cors());
+const corsOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean)
+  : true;
+
+app.use(
+  cors({
+    origin: corsOrigins,
+    allowedHeaders: ["Content-Type", "Authorization", "x-invite-token"],
+  })
+);
 app.use(express.json());
+
+/** Optional gate: set INVITE_TOKEN to require matching x-invite-token on API routes */
+function inviteTokenGate(req, res, next) {
+  const secret = process.env.INVITE_TOKEN;
+  if (!secret) return next();
+  if (req.method === "OPTIONS") return next();
+  const p = req.path;
+  if (p === "/health" || p === "/test") return next();
+  const protectedPrefixes = ["/datasets", "/capabilities", "/proofs", "/verifier", "/test-upload"];
+  const needs = protectedPrefixes.some((prefix) => p.startsWith(prefix));
+  if (!needs) return next();
+  const sent = req.get("x-invite-token");
+  if (sent !== secret) {
+    return res.status(401).json({
+      error: "Missing or invalid invite token",
+      hint: "Send header x-invite-token (or set VITE_INVITE_TOKEN on the frontend build)",
+    });
+  }
+  next();
+}
+
+app.use(inviteTokenGate);
+
 app.use(express.urlencoded({ extended: true }));
 
 // --------------------

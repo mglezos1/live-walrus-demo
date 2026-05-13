@@ -1,38 +1,21 @@
-FROM node:20-alpine
+# Node API + Sui + Walrus CLIs (Mysten suiup). Mount wallet at /root/.sui/sui_config (see docker-compose).
+FROM node:22-bookworm
 
-# Install system dependencies
-RUN apk add --no-cache \
-    build-base \
-    git \
-    python3 \
-    make \
-    g++ \
-    bash
+RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Install Circom globally
-RUN npm install -g circom@latest snarkjs@latest
+ENV PATH="/root/.local/bin:${PATH}"
+RUN curl -sSfL https://raw.githubusercontent.com/MystenLabs/suiup/main/install.sh | sh \
+  && suiup install sui \
+  && suiup install walrus
 
-# Set working directory
+RUN mkdir -p /root/.config/walrus \
+  && curl -fsSL https://docs.wal.app/setup/client_config.yaml -o /root/.config/walrus/client_config.yaml
+
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install npm dependencies
-RUN npm ci --only=production
-
-# Copy application files
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p data keys uploads downloads circuits/tmp
-
-# Expose port
 EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
-
-# Start application
-CMD ["node", "app.js"]
+ENV NODE_ENV=production
+CMD ["npm", "start"]

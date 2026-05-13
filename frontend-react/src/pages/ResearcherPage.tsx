@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import { FlaskConical } from 'lucide-react';
 
 import { getBackendUrl } from '../lib/backendUrl';
+import { apiFetch } from '../lib/apiFetch'
 
 const BACKEND_URL = getBackendUrl();
 
@@ -35,7 +36,7 @@ export function ResearcherPage() {
     setResult(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/proofs/generate`, {
+      const response = await apiFetch(`${BACKEND_URL}/proofs/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +99,7 @@ export function ResearcherPage() {
     setResult(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/proofs/submit`, {
+      const response = await apiFetch(`${BACKEND_URL}/proofs/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

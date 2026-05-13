@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { getBackendUrl } from '../lib/backendUrl'
+import { apiFetch } from '../lib/apiFetch'
 
 const BACKEND_URL = getBackendUrl()
 
@@ -28,7 +29,7 @@ export function useCapabilities() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${BACKEND_URL}/capabilities/issue`, {
+      const response = await apiFetch(`${BACKEND_URL}/capabilities/issue`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +57,7 @@ export function useCapabilities() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${BACKEND_URL}/capabilities`)
+      const response = await apiFetch(`${BACKEND_URL}/capabilities`)
       if (!response.ok) {
         throw new Error('Failed to load capabilities')
       }

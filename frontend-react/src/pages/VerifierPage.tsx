@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { Shield } from 'lucide-react'
 
 import { getBackendUrl } from '../lib/backendUrl'
+import { apiFetch } from '../lib/apiFetch'
 
 const BACKEND_URL = getBackendUrl()
 
@@ -26,7 +27,7 @@ export function VerifierPage() {
     setResult('Verifying proof...')
 
     try {
-      const response = await fetch(`${BACKEND_URL}/verifier/proofs/${proofId}`)
+      const response = await apiFetch(`${BACKEND_URL}/verifier/proofs/${proofId}`)
       
       if (!response.ok) {
         const errorData = await response.json()
@@ -59,7 +60,7 @@ export function VerifierPage() {
     setResult('Loading proofs...')
 
     try {
-      const response = await fetch(`${BACKEND_URL}/verifier/datasets/${blobId}/proofs`)
+      const response = await apiFetch(`${BACKEND_URL}/verifier/datasets/${blobId}/proofs`)
       
       if (!response.ok) {
         const errorData = await response.json()

@@ -252,7 +252,7 @@ export default async function uploadDataset(req, res) {
 
     // Step 4: Register blob ID and dataset hash on Sui blockchain
     console.log('[UPLOAD] Step 4: Registering blob ID and hash on Sui...');
-    const suiNetwork = process.env.SUI_NETWORK || 'devnet';
+    const suiNetwork = process.env.SUI_NETWORK || 'testnet';
     const datasetRegistryPackageId = process.env.DATASET_REGISTRY_PACKAGE_ID;
     const datasetRegistryObjectId = process.env.DATASET_REGISTRY_OBJECT_ID;
     

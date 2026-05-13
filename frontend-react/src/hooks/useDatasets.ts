@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 
 import { getBackendUrl } from '../lib/backendUrl'
+import { apiFetch } from '../lib/apiFetch'
 
 const BACKEND_URL = getBackendUrl()
 
@@ -19,7 +20,7 @@ export function useDatasets() {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(`${BACKEND_URL}/datasets`)
+      const response = await apiFetch(`${BACKEND_URL}/datasets`)
       if (!response.ok) {
         throw new Error('Failed to load datasets')
       }
@@ -39,7 +40,7 @@ export function useDatasets() {
       const formData = new FormData()
       formData.append('file', file)
 
-      const response = await fetch(`${BACKEND_URL}/datasets/upload`, {
+      const response = await apiFetch(`${BACKEND_URL}/datasets/upload`, {
         method: 'POST',
         body: formData,
       })

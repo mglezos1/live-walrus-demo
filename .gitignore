@@ -76,3 +76,6 @@ docker-compose.override.yml
 build/
 dist/
 *.tar.gz
+# Local secrets for Docker bind-mount
+secrets/sui_config/
+.env.production

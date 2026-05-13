@@ -43,7 +43,7 @@ export async function submitProofController(req, res) {
     }
 
     // Get Sui configuration
-    const suiNetwork = process.env.SUI_NETWORK || 'devnet';
+    const suiNetwork = process.env.SUI_NETWORK || 'testnet';
     const proofVerifierPackageId = process.env.PROOF_VERIFIER_PACKAGE_ID;
     const proofVerifierRegistryObjectId = process.env.PROOF_VERIFIER_REGISTRY_OBJECT_ID;
     
@@ -252,7 +252,7 @@ export async function getProofStatusController(req, res) {
       });
     }
 
-    const suiNetwork = process.env.SUI_NETWORK || 'devnet';
+    const suiNetwork = process.env.SUI_NETWORK || 'testnet';
     const proofVerifierPackageId = process.env.PROOF_VERIFIER_PACKAGE_ID;
     const proofVerifierRegistryObjectId = process.env.PROOF_VERIFIER_REGISTRY_OBJECT_ID;
     
