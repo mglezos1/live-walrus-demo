@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Database, FlaskConical, ShieldCheck, Home, Lock } from 'lucide-react';
 
 const navItems = [

@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Layout } from '../components/layout/Layout'
 import { Container } from '../components/layout/Container'
 import { Button } from '../components/ui/Button'
-import { Textarea } from '../components/ui/Textarea'
 import { ResultDisplay } from '../components/ui/ResultDisplay'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { Shield } from 'lucide-react'
 
-const BACKEND_URL = 'http://localhost:3000'
+import { getBackendUrl } from '../lib/backendUrl'
+
+const BACKEND_URL = getBackendUrl()
 
 export function VerifierPage() {
   const [proofId, setProofId] = useState('')

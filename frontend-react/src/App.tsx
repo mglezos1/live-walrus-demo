@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { DashboardPage } from './pages/DashboardPage';
 import { OwnerPage } from './pages/OwnerPage';
 import { ResearcherPage } from './pages/ResearcherPage';

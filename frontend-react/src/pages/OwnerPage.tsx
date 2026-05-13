@@ -25,8 +25,8 @@ interface QueryParams {
   condition?: string;
   operator?: string;
   value?: string | number;
-  min_value?: number;
-  max_value?: number;
+  min_value?: number | string;
+  max_value?: number | string;
   conditions?: Condition[]; // For multi-condition queries
   logic_op?: 'AND' | 'OR'; // For combining multiple conditions
 }
@@ -120,8 +120,15 @@ export function OwnerPage() {
         return;
       }
     } else if (query_type === 'range_query') {
-      if (!query_params.field || query_params.min_value === undefined || query_params.min_value === '' || 
-          query_params.max_value === undefined || query_params.max_value === '') {
+      if (
+        !query_params.field ||
+        query_params.min_value === undefined ||
+        query_params.min_value === null ||
+        (typeof query_params.min_value === 'string' && query_params.min_value.trim() === '') ||
+        query_params.max_value === undefined ||
+        query_params.max_value === null ||
+        (typeof query_params.max_value === 'string' && query_params.max_value.trim() === '')
+      ) {
         setCapabilityResult({
           message: 'Please fill in all required fields: Field Name, Minimum Value, and Maximum Value',
           type: 'error',
@@ -686,8 +693,8 @@ export function OwnerPage() {
                     options={[
                       { value: '', label: 'Click to select...' },
                       ...datasets.map((dataset) => ({
-                        value: dataset.datasetHash || dataset.blobId || '',
-                        label: `${dataset.blobId || 'Dataset'} ${dataset.datasetHash ? `(${dataset.datasetHash.slice(0, 8)}...)` : ''}`,
+                        value: dataset.dataset_hash || dataset.blob_id || '',
+                        label: `${dataset.blob_id || 'Dataset'} ${dataset.dataset_hash ? `(${dataset.dataset_hash.slice(0, 8)}...)` : ''}`,
                       })),
                     ]}
                   />

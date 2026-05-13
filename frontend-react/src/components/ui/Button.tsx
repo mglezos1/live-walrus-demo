@@ -20,7 +20,9 @@ export function Button({
   type = 'button',
   className = '',
 }: ButtonProps) {
-  const baseClasses = 'px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseClasses =
+    'px-6 py-3 rounded-lg font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed' +
+    (variant === 'danger' ? ' ring-2 ring-red-400/60' : variant === 'secondary' ? ' opacity-95' : '');
   
   const gradientClasses = gradient
     ? `bg-gradient-to-r ${

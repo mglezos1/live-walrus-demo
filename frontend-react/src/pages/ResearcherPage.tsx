@@ -10,7 +10,9 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { motion } from 'framer-motion';
 import { FlaskConical } from 'lucide-react';
 
-const BACKEND_URL = 'http://localhost:3000';
+import { getBackendUrl } from '../lib/backendUrl';
+
+const BACKEND_URL = getBackendUrl();
 
 export function ResearcherPage() {
   const [capability, setCapability] = useState('');

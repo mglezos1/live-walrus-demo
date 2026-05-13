@@ -1,6 +1,8 @@
 import { useState } from 'react'
 
-const BACKEND_URL = 'http://localhost:3000'
+import { getBackendUrl } from '../lib/backendUrl'
+
+const BACKEND_URL = getBackendUrl()
 
 export interface Capability {
   id: string

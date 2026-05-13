@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 
-const BACKEND_URL = 'http://localhost:3000'
+import { getBackendUrl } from '../lib/backendUrl'
+
+const BACKEND_URL = getBackendUrl()
 
 export interface Dataset {
   blob_id: string
